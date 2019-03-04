@@ -3,12 +3,19 @@
 #include <boost/asio/signal_set.hpp>
 
 #include "serialport.h"
-
+#include "serialportinfo.h"
 int main()
 {
     int exit_code {0};
+    auto ports = serial::SerialPortInfo::listSerials();
+    for (auto &path : ports)
+    {
+        std::cout << path.getPortName()
+                  << std::endl;
+    }
+
     boost::asio::io_context ctx;
-    SerialPort port{ctx, "/dev/ttyUSB0"};
+    serial::SerialPort port{ctx, ports[0]};
     boost::asio::signal_set sig{ctx, SIGINT, SIGTERM};
     sig.async_wait([&ctx, &exit_code](const auto &err, int sig_num)
     {
@@ -20,5 +27,6 @@ int main()
         }
     });
     ctx.run();
+
     return exit_code;
 }
