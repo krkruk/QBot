@@ -42,11 +42,19 @@ public:
     ~SerialPort();
 
     /**
+     * Sets a callback. The callback must be aligned with the following type:
+     * void(const char *data, std::streamsize bytes_received)
      * @brief setCallback Sets a callback.
      * @param callback a callback that is to be envoked every time
      * a new data package arrives.
      */
     void setCallback(Callback callback);
+
+    /**
+     * @brief write Writes to the serial device
+     * @param data some data in a required format
+     */
+    void write(const std::string &data);
 
     /**
      * @brief operator bool Checks if SerialPort is opened

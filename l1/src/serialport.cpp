@@ -11,6 +11,7 @@ SerialPort::SerialPort(boost::asio::io_context &ctx, const std::string &portName
 {
     using namespace boost::asio;
     serial->open(portName);
+    // TODO: move to some kind of settings
     serial->set_option(serial_port_base::baud_rate(115200));
     serial->set_option(serial_port_base::flow_control(serial_port_base::flow_control::none));
     serial->set_option(serial_port_base::parity(serial_port_base::parity::none));
@@ -36,6 +37,16 @@ SerialPort::~SerialPort()
 void SerialPort::setCallback(SerialPort::Callback callback)
 {
     this->callback = callback;
+}
+
+void SerialPort::write(const std::string &data)
+{
+    assert(data.size() < 2049);
+    /*
+     * Synchronous write should suffice assuming data payload
+     * is small. To make sure it is small perform assert().
+     */
+    serial->write_some(boost::asio::buffer(data));
 }
 
 void SerialPort::connect_message_read()
