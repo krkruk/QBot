@@ -13,7 +13,6 @@ namespace serial
 {
 
 class PortInfo;
-
 struct PrintContent
 {
     void operator()(const char *data, std::streamsize bytes_received)
