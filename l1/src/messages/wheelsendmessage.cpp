@@ -21,7 +21,7 @@ WheelSendMessage::Builder &WheelSendMessage::Builder::setPwm(int pwm) noexcept
     return *this;
 }
 
-WheelSendMessage::Builder &WheelSendMessage::Builder::setAngularVelocity(int angularVelocity) noexcept
+WheelSendMessage::Builder &WheelSendMessage::Builder::setAngularVelocity(double angularVelocity) noexcept
 {
     this->angularVelocity = angularVelocity;
     return *this;
@@ -52,7 +52,7 @@ WheelSendMessage WheelSendMessage::Builder::build()
     WheelSendMessage msg;
     boost::property_tree::ptree values;
     values.put(KEY_PWM, pwm);
-    values.put(KEY_ANGULAR_VEL, angularVelocity);
+    values.put(KEY_ANGULAR_VEL, dec_format % angularVelocity);
     values.put(KEY_PROPORTIONAL, dec_format % kp);
     values.put(KEY_INTEGRAL, dec_format % ki);
     values.put(KEY_DIFFERENTIAL, dec_format % kd);

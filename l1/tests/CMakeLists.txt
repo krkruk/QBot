@@ -16,10 +16,12 @@ add_definitions(-DBOOST_LOG_DYN_LINK)
 include_directories(
     ../src
     ../src/messages
+    ../src/utils
     )
 link_directories(
     ../src
     ../src/messages
+    ../src/utils
     )
 target_link_libraries(core_tests level_one_impl)
 

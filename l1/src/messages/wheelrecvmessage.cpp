@@ -13,9 +13,9 @@ int WheelRecvMessage::getId() const
     return id;
 }
 
-int WheelRecvMessage::getAngularVelocity() const
+double WheelRecvMessage::getAngularVelocity() const
 {
-    return get_value(KEY_ANGULAR_VEL, 0);
+    return get_value(KEY_ANGULAR_VEL, 0.0);
 }
 
 int WheelRecvMessage::getMilliamps() const

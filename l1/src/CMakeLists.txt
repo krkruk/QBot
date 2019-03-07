@@ -10,6 +10,7 @@ add_library(level_one_impl
     "messages/wheelsendmessage.h"
     "messages/wheelrecvmessage.cpp"
     "messages/wheelrecvmessage.h"
+    "utils/dispatcher.h"
     )
 
 include_directories(
