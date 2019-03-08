@@ -29,7 +29,6 @@ BOOST_AUTO_TEST_CASE(create_send_message)
                 .build()
     };
     std::string raw {msg.toString()};
-    std::cout << "RAW: " << raw;
 
     BOOST_TEST(contains(raw, R"("1":)"));
     BOOST_TEST(contains(raw, R"("PWM":"255")"));
