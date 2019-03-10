@@ -18,7 +18,8 @@ int main()
     }
 
     boost::asio::io_context ctx;
-    serial::SerialPort port{ctx, ports[0]};
+    serial::SerialPort<serial::ReadLineAlgorithm<serial::PrintContent>>
+            port{ctx, ports[0], serial::PrintContent{}};
     boost::asio::signal_set sig{ctx, SIGINT, SIGTERM};
     sig.async_wait([&ctx, &exit_code](const auto &err, int sig_num)
     {

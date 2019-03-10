@@ -1,32 +1,38 @@
-#include "serialport.h"
 #include "serialportinfo.h"
+#include "serialport.h"
+
 #include <boost/log/trivial.hpp>
 #include <iostream>
 
 
-using namespace serial;
 
-SerialPort::SerialPort(boost::asio::io_context &ctx, const std::string &portName)
-    : serial{std::make_unique<boost::asio::serial_port>(ctx)}
+template<typename Algorithm>
+serial::SerialPort<Algorithm>::SerialPort(boost::asio::io_context &ctx,
+                                                    const std::string &portName,
+                                                    typename Algorithm::callback_type readCallback)
+    : serial{std::make_unique<boost::asio::serial_port>(ctx, portName)},
+      alg{readCallback}
 {
     using namespace boost::asio;
-    serial->open(portName);
-    // TODO: move to some kind of settings
+    // TODO: move to some kind of a settings file e.g. YAML, INI
     serial->set_option(serial_port_base::baud_rate(115200));
     serial->set_option(serial_port_base::flow_control(serial_port_base::flow_control::none));
     serial->set_option(serial_port_base::parity(serial_port_base::parity::none));
     serial->set_option(serial_port_base::stop_bits(serial_port_base::stop_bits::one));
     serial->set_option(serial_port_base::character_size(8));
-    serial->send_break();
     connect_message_read();
 }
 
-SerialPort::SerialPort(boost::asio::io_context &ctx, const PortInfo &portName)
-    : SerialPort{ctx, portName.getPortName()}
+template<typename Algorithm>
+serial::SerialPort<Algorithm>::SerialPort(boost::asio::io_context &ctx,
+                                                    const PortInfo &portName,
+                                                    typename Algorithm::callback_type readCallback)
+    : SerialPort{ctx, portName.getPortName(), readCallback}
 {
 }
 
-SerialPort::~SerialPort()
+template<typename Algorithm>
+serial::SerialPort<Algorithm>::~SerialPort()
 {
    if (serial->is_open())
    {
@@ -34,12 +40,8 @@ SerialPort::~SerialPort()
    }
 }
 
-void SerialPort::setCallback(SerialPort::Callback callback)
-{
-    this->callback = callback;
-}
-
-void SerialPort::write(const std::string &data)
+template<typename Algorithm>
+void serial::SerialPort<Algorithm>::write(const std::string &data)
 {
     assert(data.size() < 2049);
     /*
@@ -49,7 +51,8 @@ void SerialPort::write(const std::string &data)
     serial->write_some(boost::asio::buffer(data));
 }
 
-void SerialPort::connect_message_read()
+template<typename Algorithm>
+void serial::SerialPort<Algorithm>::connect_message_read()
 {
     serial->async_read_some(boost::asio::buffer(read_bytes),
                            [&](const auto &e, auto bytes_received)
@@ -58,19 +61,18 @@ void SerialPort::connect_message_read()
     });
 }
 
-SerialPort::operator bool() const
+template<typename Algorithm>
+serial::SerialPort<Algorithm>::operator bool() const
 {
     return serial->is_open();
 }
 
-void SerialPort::on_message_received(const boost::system::error_code &e, std::streamsize bytes_received)
+template<typename Algorithm>
+void serial::SerialPort<Algorithm>::on_message_received(const boost::system::error_code &e, std::streamsize bytes_received)
 {
     if (!e && bytes_received)
     {
-        if (callback)
-        {
-            callback(read_bytes.data(), bytes_received);
-        }
+        alg(read_bytes.data(), bytes_received);
         connect_message_read();
     }
     else
@@ -80,7 +82,8 @@ void SerialPort::on_message_received(const boost::system::error_code &e, std::st
     }
 }
 
-void SerialPort::on_error()
+template<typename Algorithm>
+void serial::SerialPort<Algorithm>::on_error()
 {
     serial->cancel();
     serial->close();

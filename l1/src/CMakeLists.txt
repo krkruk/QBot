@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 project(level_one)
 add_library(level_one_impl
-    "serialport.cpp"
     "serialport.h"
     "serialportinfo.cpp"
     "serialportinfo.h"
