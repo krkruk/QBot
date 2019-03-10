@@ -1,15 +1,17 @@
-#define BOOST_TEST_MODULE test_core_model
+#define BOOST_TEST_MODULE test_core
+#include <boost/property_tree/json_parser.hpp>
 #include <boost/test/included/unit_test.hpp>
 #include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
-#include <iostream>
+
 #include <algorithm>
+#include <iostream>
 #include <string>
-#include "serialport.h"
+
+#include "jsondispatcherprocessor.h"
 #include "wheelsendmessage.h"
 #include "wheelrecvmessage.h"
+#include "serialport.h"
 #include "dispatcher.h"
-#include "jsondispatcherprocessor.h"
 
 
 template<typename T>
