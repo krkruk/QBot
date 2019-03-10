@@ -9,6 +9,7 @@
 #include "wheelsendmessage.h"
 #include "wheelrecvmessage.h"
 #include "dispatcher.h"
+#include "jsondispatcherprocessor.h"
 
 
 template<typename T>
@@ -78,4 +79,81 @@ BOOST_AUTO_TEST_CASE(test_pack_dispatcher)
     dispatcher.notify();
     BOOST_CHECK_EQUAL(expected_string, value_string);
     BOOST_CHECK_EQUAL(expected_int, value_int);
+}
+
+BOOST_AUTO_TEST_CASE(test_dispatching_json)
+{
+    int identifier{};
+    std::string json_received;
+
+    const std::string json{R"({"1":{"ROT":"20.0","CUR":"1260","TMP":"26.0","PWM":"-200","ERR":"0"}})"};
+    auto callback = [&identifier, &json_received](int id, std::string data){identifier = id;json_received = data;};
+    MappedDispatcher<std::string,
+        JsonDispatcherProcessor<int, std::string>> dispatcher;
+
+    dispatcher.addObserver(1, callback);
+    dispatcher.dispatch(json);
+    dispatcher.notify();
+
+    boost::property_tree::ptree ptree_data;
+    std::stringstream ss(json_received);
+    boost::property_tree::json_parser::read_json(ss, ptree_data);
+
+    BOOST_CHECK_EQUAL(1, identifier);
+    BOOST_TEST(20.0 == ptree_data.get<double>("ROT"), boost::test_tools::tolerance(0.01));
+    BOOST_TEST(26.0 == ptree_data.get<double>("TMP"), boost::test_tools::tolerance(0.01));
+    BOOST_TEST(1260 == ptree_data.get<int>("CUR"));
+    BOOST_TEST(-200 == ptree_data.get<int>("PWM"));
+}
+
+BOOST_AUTO_TEST_CASE(test_dispatching_json_no_convert)
+{
+    using ptree = boost::property_tree::ptree;
+    int identifier{};
+    ptree ptree_data;
+
+    const std::string json{R"({"1":{"ROT":"20.0","CUR":"1260","TMP":"26.0","PWM":"-200","ERR":"0"}})"};
+    auto callback = [&identifier, &ptree_data](int id, ptree data){identifier = id; ptree_data = data;};
+
+    MappedDispatcher<std::string,
+        JsonDispatcherProcessor<int, boost::property_tree::ptree>> dispatcher;
+
+    dispatcher.addObserver(1, callback);
+    dispatcher.dispatch(json);
+    dispatcher.notify();
+
+    BOOST_CHECK_EQUAL(1, identifier);
+    BOOST_TEST(20.0 == ptree_data.get<double>("ROT"), boost::test_tools::tolerance(0.01));
+    BOOST_TEST(26.0 == ptree_data.get<double>("TMP"), boost::test_tools::tolerance(0.01));
+    BOOST_TEST(1260 == ptree_data.get<int>("CUR"));
+    BOOST_TEST(-200 == ptree_data.get<int>("PWM"));
+}
+
+
+BOOST_AUTO_TEST_CASE(test_dispatching_multiple_observers)
+{
+    using ptree = boost::property_tree::ptree;
+    int id1, id2, id3 {};
+    ptree pdata1, pdata2, pdata3;
+
+    const std::string json{R"({"1":{"ROT":"20.0"},"2":{"ROT":"-30.0"},"3":{"ROT":"66.6"}})"};
+    auto callback1 = [&id1, &pdata1](int id, ptree data){id1 = id; pdata1 = data;};
+    auto callback2 = [&id2, &pdata2](int id, ptree data){id2 = id; pdata2 = data;};
+    auto callback3 = [&id3, &pdata3](int id, ptree data){id3 = id; pdata3 = data;};
+
+    MappedDispatcher<std::string,
+        JsonDispatcherProcessor<int, boost::property_tree::ptree>> dispatcher;
+
+    dispatcher.addObserver(1, callback1);
+    dispatcher.addObserver(2, callback2);
+    dispatcher.addObserver(3, callback3);
+    dispatcher.dispatch(json);
+    dispatcher.notify();
+
+    BOOST_CHECK_EQUAL(1, id1);
+    BOOST_CHECK_EQUAL(2, id2);
+    BOOST_CHECK_EQUAL(3, id3);
+    BOOST_TEST(20.0 == pdata1.get<double>("ROT"), boost::test_tools::tolerance(0.01));
+    BOOST_TEST(-30.0 == pdata2.get<double>("ROT"), boost::test_tools::tolerance(0.01));
+    BOOST_TEST(66.6 == pdata3.get<double>("ROT"), boost::test_tools::tolerance(0.01));
 }

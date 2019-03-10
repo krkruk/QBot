@@ -10,6 +10,8 @@ add_library(level_one_impl
     "messages/wheelrecvmessage.cpp"
     "messages/wheelrecvmessage.h"
     "utils/dispatcher.h"
+    "utils/jsondispatcherprocessor.h"
+    "utils/jsondispatcherprocessor.cpp"
     )
 
 include_directories(
