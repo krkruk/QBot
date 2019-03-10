@@ -7,7 +7,7 @@ bool JsonDispatcherProcessor<IdType, OutputType>::isValid(IdType id) const
 }
 
 template<typename IdType, typename OutputType>
-void JsonDispatcherProcessor<IdType, OutputType>::operator()(const std::string &data)
+void JsonDispatcherProcessor<IdType, OutputType>::process(const std::string &data)
 {
     std::stringstream ss(data);
     boost::property_tree::json_parser::read_json(ss, content);
