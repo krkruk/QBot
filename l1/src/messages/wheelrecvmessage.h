@@ -8,6 +8,7 @@ class WheelRecvMessage
 {
     WheelRecvMessage(int id, boost::property_tree::ptree &&content);
 public:
+    WheelRecvMessage();
     static constexpr const char *KEY_ANGULAR_VEL = "ROT";
     static constexpr const char *KEY_CURRENT = "CUR";
     static constexpr const char *KEY_TEMPERATURE = "TMP";
@@ -67,6 +68,17 @@ public:
      * @return an instance of WheelRecvMessage
      */
     static WheelRecvMessage fromRaw(int id, const std::string &json);
+
+    /**
+     * Parses JSON and loads telemetry data.
+     * @brief fromRaw Parser raw json
+     * @param id ID of wheel
+     * @param tree a set key-value pairs defined in a property tree for
+     * the given ID
+     * @return an instance of WheelRecvMessage
+     */
+    static WheelRecvMessage fromTree(int id, const boost::property_tree::ptree &tree);
+
 
 private:
     int id {-1};

@@ -8,6 +8,11 @@ WheelRecvMessage::WheelRecvMessage(int id, boost::property_tree::ptree &&content
 {
 }
 
+WheelRecvMessage::WheelRecvMessage()
+    : id{-1}
+{
+}
+
 int WheelRecvMessage::getId() const
 {
     return id;
@@ -47,9 +52,19 @@ WheelRecvMessage WheelRecvMessage::fromRaw(int id, const std::string &json)
     return WheelRecvMessage(id, std::move(content));
 }
 
+WheelRecvMessage WheelRecvMessage::fromTree(int id, const boost::property_tree::ptree &tree)
+{
+    auto content{tree};
+    return WheelRecvMessage{id, std::move(content)};
+}
+
 template<typename T>
 T WheelRecvMessage::get_value(const char *key, T default_value) const
 {
-    return content.get_child(std::to_string(id))
+    /**
+     * Tries to access content's child. If there is no child,
+     * assume the right content is not nested.
+     */
+    return content.get_child(std::to_string(id), content)
             .get<T>(key, default_value);
 }

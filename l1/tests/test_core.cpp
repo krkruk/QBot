@@ -159,3 +159,26 @@ BOOST_AUTO_TEST_CASE(test_dispatching_multiple_observers)
     BOOST_TEST(-30.0 == pdata2.get<double>("ROT"), boost::test_tools::tolerance(0.01));
     BOOST_TEST(66.6 == pdata3.get<double>("ROT"), boost::test_tools::tolerance(0.01));
 }
+
+BOOST_AUTO_TEST_CASE(test_dispatching_to_wheelrecvmessage)
+{
+    using ptree = boost::property_tree::ptree;
+    int identifier{};
+    WheelRecvMessage received;
+
+    const std::string json{R"({"1":{"ROT":"20.0","CUR":"1260","TMP":"26.0","PWM":"-200","ERR":"0"}})"};
+    auto callback = [&identifier, &received](int id, ptree data){
+        identifier = id;
+        received = WheelRecvMessage::fromTree(id, data);
+    };
+
+    MappedDispatcher<std::string,
+        JsonDispatcherProcessor<int, boost::property_tree::ptree>> dispatcher;
+
+    dispatcher.addObserver(1, callback);
+    dispatcher.dispatch(json);
+    dispatcher.notify();
+
+    BOOST_TEST(20.0 == received.getAngularVelocity(), boost::test_tools::tolerance(0.01));
+    BOOST_TEST(-200 == received.getPwm());
+}
