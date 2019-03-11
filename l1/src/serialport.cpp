@@ -41,6 +41,18 @@ serial::SerialPort<Algorithm>::~SerialPort()
 }
 
 template<typename Algorithm>
+template<typename Message>
+void serial::SerialPort<Algorithm>::write(const Message &data)
+{
+    assert(data.size() < 2049);
+    /*
+     * Synchronous write should suffice assuming data payload
+     * is small. To make sure it is small perform assert().
+     */
+    serial->write_some(boost::asio::buffer(data.toString()));
+}
+
+template<typename Algorithm>
 void serial::SerialPort<Algorithm>::write(const std::string &data)
 {
     assert(data.size() < 2049);

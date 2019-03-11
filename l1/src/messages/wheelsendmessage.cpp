@@ -3,11 +3,17 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/format.hpp>
 
+
 std::string WheelSendMessage::toString(bool pretty) const
 {
     std::stringstream ss;
     boost::property_tree::json_parser::write_json(ss, content, pretty);
     return ss.str();
+}
+
+boost::property_tree::ptree WheelSendMessage::toJson() const
+{
+   return content;
 }
 
 WheelSendMessage::Builder::Builder(int id)

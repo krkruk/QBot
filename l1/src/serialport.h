@@ -119,6 +119,14 @@ public:
     ~SerialPort();
 
     /**
+     * @brief write Writes to the serial device. Requires toString()
+     * method
+     * @param data some data in a required format
+     */
+    template<typename Message>
+    void write(const Message &data);
+
+    /**
      * @brief write Writes to the serial device
      * @param data some data in a required format
      */

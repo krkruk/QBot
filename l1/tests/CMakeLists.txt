@@ -13,31 +13,32 @@ add_executable(core_chassis_test
 
 
 add_compile_options(-Wno-disabled-macro-expansion)
-target_include_directories(
-    core_tests
-    PRIVATE ${BOOST_INCLUDE_DIRS}
-    )
 find_package(Boost 1.69 REQUIRED filesystem system regex thread log)
-target_link_libraries(core_tests ${Boost_LIBRARIES})
 add_definitions(-DBOOST_LOG_DYN_LINK)
 
 include_directories(
     ../src
     ../src/messages
+    ../src/model
     ../src/utils
     )
 link_directories(
     ../src
     ../src/messages
+    ../src/model
     ../src/utils
     )
-target_link_libraries(core_tests level_one_impl)
 
+
+target_include_directories(core_tests PRIVATE ${BOOST_INCLUDE_DIRS})
+target_link_libraries(core_tests level_one_impl ${Boost_LIBRARIES})
 add_test(
     NAME test_core
     COMMAND $<TARGET_FILE:core_tests>
 )
 
+target_include_directories(core_chassis_test PRIVATE ${BOOST_INCLUDE_DIRS})
+target_link_libraries(core_chassis_test level_one_impl ${Boost_LIBRARIES})
 add_test(
     NAME test_chassis_model
     COMMAND $<TARGET_FILE:core_chassis_test>

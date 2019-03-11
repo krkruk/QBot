@@ -9,13 +9,18 @@ add_library(level_one_impl
     "messages/wheelsendmessage.h"
     "messages/wheelrecvmessage.cpp"
     "messages/wheelrecvmessage.h"
+    "model/wheel.h"
     "utils/dispatcher.h"
+    "utils/jsonsink.h"
+    "utils/jsonsink.cpp"
     "utils/jsondispatcherprocessor.h"
     "utils/jsondispatcherprocessor.cpp"
     )
 
 include_directories(
     ./messages
+    ./model
+    ./utils
     )
 add_executable(${PROJECT_NAME} "main.cpp")
 target_link_libraries(${PROJECT_NAME} level_one_impl)

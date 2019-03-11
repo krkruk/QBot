@@ -111,6 +111,12 @@ public:
      */
     std::string toString(bool pretty = false) const;
 
+    /**
+     * @brief toJson Returns JSON representation
+     * @return JSON
+     */
+    boost::property_tree::ptree toJson() const;
+
 private:
     boost::property_tree::ptree content;
 };
