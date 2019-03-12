@@ -23,31 +23,31 @@ WheelSendMessage::Builder::Builder(int id)
 
 WheelSendMessage::Builder &WheelSendMessage::Builder::setPwm(int pwm) noexcept
 {
-    this->pwm = pwm;
+    this->pwm = std::make_pair(true, pwm);
     return *this;
 }
 
 WheelSendMessage::Builder &WheelSendMessage::Builder::setAngularVelocity(double angularVelocity) noexcept
 {
-    this->angularVelocity = angularVelocity;
+    this->angularVelocity = std::make_pair(true, angularVelocity);
     return *this;
 }
 
 WheelSendMessage::Builder &WheelSendMessage::Builder::setProportional(double kp) noexcept
 {
-    this->kp = kp;
+    this->kp = std::make_pair(true, kp);
     return *this;
 }
 
 WheelSendMessage::Builder &WheelSendMessage::Builder::setIntegral(double ki) noexcept
 {
-    this->ki = ki;
+    this->ki = std::make_pair(true, ki);
     return *this;
 }
 
 WheelSendMessage::Builder &WheelSendMessage::Builder::setDifferential(double kd) noexcept
 {
-    this->kd = kd;
+    this->kd = std::make_pair(true, kd);
     return *this;
 }
 
@@ -57,11 +57,22 @@ WheelSendMessage WheelSendMessage::Builder::build()
 
     WheelSendMessage msg;
     boost::property_tree::ptree values;
-    values.put(KEY_PWM, pwm);
-    values.put(KEY_ANGULAR_VEL, dec_format % angularVelocity);
-    values.put(KEY_PROPORTIONAL, dec_format % kp);
-    values.put(KEY_INTEGRAL, dec_format % ki);
-    values.put(KEY_DIFFERENTIAL, dec_format % kd);
+    auto set_value = [&values, &dec_format](const char *key, const std::pair<bool, double> &value)
+    {
+        if (value.first)
+        {
+            values.put(key, dec_format % value.second);
+        }
+    };
+
+    if (pwm.first)
+    {
+        values.put(KEY_PWM, pwm.second);
+    }
+    set_value(KEY_ANGULAR_VEL, angularVelocity);
+    set_value(KEY_PROPORTIONAL, kp);
+    set_value(KEY_INTEGRAL, ki);
+    set_value(KEY_DIFFERENTIAL, kd);
     msg.content.add_child(std::to_string(id), values);
 
     return msg;

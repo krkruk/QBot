@@ -1,6 +1,7 @@
 #ifndef WHEEL_H
 #define WHEEL_H
 #include <memory>
+#include "wheelsendmessage.h"
 
 
 namespace model
@@ -12,6 +13,7 @@ namespace model
 template<typename DataSink>
 class Wheel
 {
+    const int id;
     std::weak_ptr<DataSink> sink;
 public:
     /**
@@ -19,7 +21,7 @@ public:
      * with a method DataSing::write(Message)
      * @param sink A data sink
      */
-    explicit Wheel(std::weak_ptr<DataSink> sink);
+    explicit Wheel(int id, std::weak_ptr<DataSink> sink);
 
 
     /**
@@ -30,6 +32,8 @@ public:
      */
     template<typename Message>
     void sendMessage(const Message &msg);
+
+    WheelSendMessage::Builder generateMessage() const;
 };
 
 }

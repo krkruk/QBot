@@ -1,8 +1,9 @@
 #ifndef WHEELSENDMESSAGE_H
 #define WHEELSENDMESSAGE_H
-#include <string>
-#include <iostream>
 #include <boost/property_tree/ptree.hpp>
+#include <iostream>
+#include <string>
+#include <utility>
 
 
 /**
@@ -33,12 +34,12 @@ public:
     class Builder
     {
         friend class WheelSendMessage;
-        int id {0};
-        int pwm {0};
-        double angularVelocity {0};
-        double kp {0.0};
-        double ki {0.0};
-        double kd {0.0};
+        int id;
+        std::pair<bool, int> pwm;
+        std::pair<bool, double> angularVelocity;
+        std::pair<bool, double> kp;
+        std::pair<bool, double> ki;
+        std::pair<bool, double> kd;
 
     public:
         /**
@@ -48,11 +49,6 @@ public:
          * to choose a device where a command can be issue.
          */
         explicit Builder(int id);
-
-        Builder(const Builder &) = delete;
-        Builder(Builder &&) = delete;
-        Builder &operator=(const Builder &) = delete;
-        Builder &operator=(Builder &&) = delete;
 
         /**
          * @brief setPwm Sets PWM in a wheel of the given ID
