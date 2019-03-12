@@ -8,6 +8,7 @@
 
 #include "wheelsendmessage.h"
 #include "jsonsink.h"
+#include "chassis.h"
 #include "wheel.h"
 
 
@@ -38,15 +39,6 @@ public:
     }
 };
 
-namespace model
-{
-    template<typename WheelClass>
-    class Chassis
-    {
-    public:
-    };
-}
-
 BOOST_AUTO_TEST_CASE(test_send_message_to_sink)
 {
     using namespace model;
@@ -59,8 +51,6 @@ BOOST_AUTO_TEST_CASE(test_send_message_to_sink)
     rightWheel->sendMessage(rmsg);
 
     const auto msg = sink->toString();
-    std::cout << "lmsg: " << lmsg.toString() << std::endl;
-    std::cout << "MSG: " << msg << std::endl;
     BOOST_TEST(contains(msg, R"("1":{"PWM":"200")"));
     BOOST_TEST(contains(msg, R"("2":{"PWM":"-200")"));
 }
@@ -78,10 +68,11 @@ BOOST_AUTO_TEST_CASE(test_send_message_directly_to_serial)
 
 BOOST_AUTO_TEST_CASE(test_register_in_chassis)
 {
-    using Wheel = model::Wheel<MockSerialPort>;
+    using Wheel = model::Wheel<JsonSink>;
     auto serial = std::make_shared<MockSerialPort>();
-    auto leftWheel = std::make_shared<Wheel>(1, serial);
-    auto chassis = std::make_unique<model::Chassis<Wheel>>();
-    auto lmsg = leftWheel->generateMessage().setPwm(100).build();
-//    chassis->addWheel(leftWheel);
+    auto leftWheel = std::make_shared<Wheel>(0, serial);
+    auto rightWheel = std::make_shared<Wheel>(1, serial);
+    auto chassis = std::make_unique<model::Chassis<Wheel, 2>>();
+    chassis->addWheel(leftWheel);
+    chassis->addWheel(rightWheel);
 }

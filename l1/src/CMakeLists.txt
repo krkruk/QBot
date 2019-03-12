@@ -10,6 +10,7 @@ add_library(level_one_impl
     "messages/wheelrecvmessage.cpp"
     "messages/wheelrecvmessage.h"
     "model/wheel.h"
+    "model/chassis.h"
     "utils/dispatcher.h"
     "utils/jsonsink.h"
     "utils/jsonsink.cpp"

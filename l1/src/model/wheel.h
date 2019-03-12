@@ -23,6 +23,7 @@ public:
      */
     explicit Wheel(int id, std::weak_ptr<DataSink> sink);
 
+    int getId() const;
 
     /**
      * The method sends message to the DataSink. Please

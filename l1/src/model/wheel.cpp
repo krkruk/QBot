@@ -7,9 +7,15 @@ model::Wheel<DataSink>::Wheel(int id, std::weak_ptr<DataSink> sink)
 { }
 
 template<typename DataSink>
+int model::Wheel<DataSink>::getId() const
+{
+    return id;
+}
+
+template<typename DataSink>
 WheelSendMessage::Builder model::Wheel<DataSink>::generateMessage() const
 {
-    return std::move(WheelSendMessage::Builder(id));
+    return WheelSendMessage::Builder(id);
 }
 
 
