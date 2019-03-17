@@ -21,12 +21,13 @@ include_directories(
     ../src/messages
     ../src/model
     ../src/utils
+    ../src/commands
     )
 link_directories(
     ../src
     ../src/messages
     ../src/model
-    ../src/utils
+    ../src/commands
     )
 
 

@@ -16,12 +16,18 @@ add_library(level_one_impl
     "utils/jsonsink.cpp"
     "utils/jsondispatcherprocessor.h"
     "utils/jsondispatcherprocessor.cpp"
+    "commands/command.h"
+    "commands/drivecommand.h"
+    "commands/drivecommand.cpp"
+    "commands/pwmdrivecommand.h"
+    "commands/pwmdrivecommand.cpp"
     )
 
 include_directories(
     ./messages
     ./model
     ./utils
+    ./commands
     )
 add_executable(${PROJECT_NAME} "main.cpp")
 target_link_libraries(${PROJECT_NAME} level_one_impl)
