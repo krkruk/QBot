@@ -7,6 +7,7 @@
 #include <sstream>
 #include <string>
 
+#include "sequentialcommandexecutor.h"
 #include "wheelsendmessage.h"
 #include "pwmdrivecommand.h"
 #include "jsonsink.h"
@@ -19,6 +20,12 @@ bool contains(std::string root, T value)
 {
     return root.find(value) != std::string::npos;
 }
+
+int extract(const std::vector<WheelSendMessage> &values, unsigned int id)
+{
+    return values[id].toJson().get_child(std::to_string(id))
+            .get<int>(WheelSendMessage::KEY_PWM);
+};
 
 class MockSerialPort
 {
@@ -88,35 +95,33 @@ BOOST_AUTO_TEST_CASE(test_pwm_drive_command)
     cmd->setRightValue(-100);
     std::vector<WheelSendMessage> values = cmd->execute();
 
-    auto extract = [&values](unsigned int id)
-    {
-        return values[id].toJson().get_child(std::to_string(id))
-                .get<int>(WheelSendMessage::KEY_PWM);
-    };
-
-    BOOST_CHECK_EQUAL(100, extract(0));
-    BOOST_CHECK_EQUAL(100, extract(1));
-    BOOST_CHECK_EQUAL(-100, extract(2));
-    BOOST_CHECK_EQUAL(-100, extract(3));
+    BOOST_CHECK_EQUAL(100, extract(values, 0));
+    BOOST_CHECK_EQUAL(100, extract(values, 1));
+    BOOST_CHECK_EQUAL(-100, extract(values, 2));
+    BOOST_CHECK_EQUAL(-100, extract(values, 3));
 }
 
+BOOST_AUTO_TEST_CASE(test_command_executor)
+{
+    constexpr int wheelCount = 2;
+    std::vector<WheelSendMessage> rcvd_values;
+    auto callback = [&rcvd_values](std::vector<WheelSendMessage> &&message)
+    {
+        rcvd_values = std::move(message);
+    };
+    SequentialCommandExecutor exec;
+    exec.setCallback(callback);
+    auto command = std::make_unique<PwmDriveCommand>(wheelCount);
+    command->setLeftValue(100);
+    command->setRightValue(250);
+    exec.addCommand(std::move(command));
+    command = std::make_unique<PwmDriveCommand>(wheelCount);
+    command->setLeftValue(0);
+    command->setRightValue(-250);
+    exec.addCommand(std::move(command));
+    exec.exec();
 
-//BOOST_AUTO_TEST_CASE(test_command_executor)
-//{
-//    constexpr int wheelCount = 2;
-//    CommandExecutor exec;
-//    std::unordered_map<int, double> recvd_values;
-//    auto callback = [&recvd_values](std::unordered_map<int, double> values)
-//    {
-//        recvd_values = values;
-//    };
-//    exec.setCallback(callback);
-//    auto command = std::make_unique<PwmDriveCommand>(wheelCount);
-//    command->setLeftValue(100);
-//    command->setRightValue(-100);
-//    exec.addCommand(command);
-//    exec.exec();
+    BOOST_CHECK_EQUAL(0, extract(rcvd_values, 0));
+    BOOST_CHECK_EQUAL(-250, extract(rcvd_values, 1));
 
-//    BOOST_CHECK_EQUAL(100, recvd_values[0]);
-//    BOOST_CHECK_EQUAL(-100, recvd_values[1]);
-//}
+}

@@ -21,6 +21,8 @@ add_library(level_one_impl
     "commands/drivecommand.cpp"
     "commands/pwmdrivecommand.h"
     "commands/pwmdrivecommand.cpp"
+    "commands/sequentialcommandexecutor.h"
+    "commands/sequentialcommandexecutor.cpp"
     )
 
 include_directories(
