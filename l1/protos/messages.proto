@@ -1,9 +1,0 @@
-syntax = "proto3";
-
-package rpc;
-
-message InputDevice
-{
-    int32 vert = 1;
-    int32 hori = 2;
-}

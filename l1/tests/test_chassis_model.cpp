@@ -75,18 +75,6 @@ BOOST_AUTO_TEST_CASE(test_send_message_directly_to_serial)
     BOOST_TEST(contains(serial->getData(), "666"));
 }
 
-BOOST_AUTO_TEST_CASE(test_register_in_chassis)
-{
-    using Wheel = model::Wheel<MockSerialPort>;
-    auto serial = std::make_shared<MockSerialPort>();
-    auto leftWheel = std::make_shared<Wheel>(0, serial);
-    auto rightWheel = std::make_shared<Wheel>(1, serial);
-    auto chassis = std::make_unique<model::Chassis<Wheel, 2>>();
-    chassis->addWheel(leftWheel);
-    chassis->addWheel(rightWheel);
-    //TODO: what's next?
-}
-
 BOOST_AUTO_TEST_CASE(test_pwm_drive_command)
 {
     constexpr int wheelCount = 4;
@@ -123,5 +111,16 @@ BOOST_AUTO_TEST_CASE(test_command_executor)
 
     BOOST_CHECK_EQUAL(0, extract(rcvd_values, 0));
     BOOST_CHECK_EQUAL(-250, extract(rcvd_values, 1));
+}
 
+BOOST_AUTO_TEST_CASE(test_register_in_chassis)
+{
+    using Wheel = model::Wheel<MockSerialPort>;
+    auto serial = std::make_shared<MockSerialPort>();
+    auto leftWheel = std::make_shared<Wheel>(0, serial);
+    auto rightWheel = std::make_shared<Wheel>(1, serial);
+    auto chassis = std::make_unique<model::Chassis<Wheel, 2>>();
+    chassis->addWheel(leftWheel);
+    chassis->addWheel(rightWheel);
+    //TODO: what's next?
 }

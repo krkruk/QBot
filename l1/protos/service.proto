@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+package rpc.svc;
+
+
+service ChassisService 
+{
+    rpc drivePwm (PwmDriveCommand) returns (CommandResult);
+    rpc driveDifferential (DifferentialDriveCommand) returns (CommandResult);
+    rpc startPeripheralDevice (PeripheralDeviceCommand) returns (PeripheralDeviceCommand);
+}
+  
+message CommandResult
+{
+    enum Result
+    {
+        UNDEFINED = 0;
+        OK = 1;
+        FAILURE = 2;
+    }
+
+    Result result = 1;
+    string description = 2;
+}
+
+message PwmDriveCommand
+{
+    /**
+    * @brief A PWM value for the left row of wheels.
+    * If positive, the wheels shall move the rover forward.
+    */
+    int32 lpwm = 1;
+
+    /**
+    * @brief A PWM value for the right row of wheels.
+    * If positive, the wheels shall move the rover forward.
+    */
+    int32 rpwm = 2;
+}
+
+message DifferentialDriveCommand
+{
+    /**
+    * @brief A value retrieved from a controller that
+    * represents a vertical movement:
+    *         ^
+    *         |
+    *         |
+    *         |
+    *         v
+    */
+    int32 forward = 1;
+
+    /**
+    * @brief A value retrieved from a controller that
+    * represents a horizontal movement:
+    *
+    *    < --------- >
+    */
+    int32 bank = 2;
+
+    /**
+    * @brief Enables to turn in place. One row of wheels
+    * goes forward and the other one goes backward.
+    */
+    bool inplace_turn = 3;
+}
+
+message PeripheralDeviceCommand
+{
+    enum Device
+    {
+        UNKNOWN = 0;
+        FRONT_LED = 1;
+        REVERSE_LED = 2;
+        CAMERA_STREAM = 3;
+    }
+
+    enum Status
+    {
+        UNDEFINED = 0;
+        ENABLED = 1;
+        DISABLED = 2;
+    }
+
+    Device device = 1;
+    Status status = 2;
+}

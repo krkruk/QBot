@@ -3,3 +3,14 @@ build-*
 
 #ignore IDE files
 *.user
+
+#ignore python __pycache__
+__pycache__
+
+#ignore generated protobuf and grpc files
+*.grpc.pb.cc
+*.grpc.pb.h
+*_pb2_grpc.py
+*_pb2.py
+*.pb.cc
+*.pb.h
