@@ -1,5 +1,6 @@
 #include "sequentialcommandexecutor.h"
 
+#include <exception>
 #include "wheelsendmessage.h"
 #include "drivecommand.h"
 
@@ -8,7 +9,7 @@ SequentialCommandExecutor::SequentialCommandExecutor()
 {
 }
 
-void SequentialCommandExecutor::setCallback(SequentialCommandExecutor::Callback callback)
+void SequentialCommandExecutor::setNotifier(SequentialCommandExecutor::Callback callback)
 {
     this->callback = callback;
 }
@@ -22,7 +23,7 @@ void SequentialCommandExecutor::exec()
 {
     if (!callback)
     {
-        return;
+        throw std::logic_error("Missing callback");
     }
 
     while (commands.size())

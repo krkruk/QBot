@@ -98,7 +98,7 @@ BOOST_AUTO_TEST_CASE(test_command_executor)
         rcvd_values = std::move(message);
     };
     SequentialCommandExecutor exec;
-    exec.setCallback(callback);
+    exec.setNotifier(callback);
     auto command = std::make_unique<PwmDriveCommand>(wheelCount);
     command->setLeftValue(100);
     command->setRightValue(250);
@@ -116,11 +116,25 @@ BOOST_AUTO_TEST_CASE(test_command_executor)
 BOOST_AUTO_TEST_CASE(test_register_in_chassis)
 {
     using Wheel = model::Wheel<MockSerialPort>;
-    auto serial = std::make_shared<MockSerialPort>();
-    auto leftWheel = std::make_shared<Wheel>(0, serial);
-    auto rightWheel = std::make_shared<Wheel>(1, serial);
-    auto chassis = std::make_unique<model::Chassis<Wheel, 2>>();
+    constexpr int wheelCount {2};
+    auto lserial = std::make_shared<MockSerialPort>();
+    auto rserial = std::make_shared<MockSerialPort>();
+    auto leftWheel = std::make_shared<Wheel>(0, lserial);
+    auto rightWheel = std::make_shared<Wheel>(1, rserial);
+    auto chassis = std::make_unique<model::Chassis<Wheel, wheelCount>>();
     chassis->addWheel(leftWheel);
     chassis->addWheel(rightWheel);
-    //TODO: what's next?
+    auto command = std::make_unique<PwmDriveCommand>(wheelCount);
+    command->setLeftValue(200);
+    command->setRightValue(-200);
+    auto executor = std::make_unique<SequentialCommandExecutor>();
+    executor->setNotifier([&chassis](std::vector<WheelSendMessage> &&message)
+    {
+        chassis->notify(std::move(message));
+    });
+    executor->addCommand(std::move(command));
+    executor->exec();
+
+    BOOST_TEST(contains(lserial->getData(), R"("0":{"PWM":"200")"));
+    BOOST_TEST(contains(rserial->getData(), R"("1":{"PWM":"-200")"));
 }

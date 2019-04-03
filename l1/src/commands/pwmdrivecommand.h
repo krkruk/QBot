@@ -9,15 +9,15 @@
  *  * any RightValue shall be set for all right column wheels
  *
  * The ID enumeration is as follows (e.g. 6-wheel chassis):
- *  (IDs placed in parentheses)
+ *  (IDs placed in parentheses) <br />
  *
- *   (0) ||  ------- ||  (3)
- *              |
- *              |
- *   (1) ||  ------- ||  (4)
- *              |
- *              |
- *   (2) ||  ------- ||  (5)
+ *   (0) ||  ------- ||  (3) <br />
+ *              |            <br />
+ *              |            <br />
+ *   (1) ||  ------- ||  (4) <br />
+ *              |            <br />
+ *              |            <br />
+ *   (2) ||  ------- ||  (5) <br />
  * @brief The PwmDriveCommand class implements PWM based control of the robot.
  */
 class PwmDriveCommand : public DriveCommand

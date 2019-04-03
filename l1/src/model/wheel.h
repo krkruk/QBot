@@ -16,6 +16,8 @@ class Wheel
     const int id;
     std::weak_ptr<DataSink> sink;
 public:
+    using message_type = WheelSendMessage;
+
     /**
      * @brief Wheel Constructor, requires DataSink
      * with a method DataSing::write(Message)
