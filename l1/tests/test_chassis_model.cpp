@@ -208,9 +208,64 @@ BOOST_AUTO_TEST_CASE(test_combine_all_together_separate_microcontrollers)
     // Usually it is a good habit to inform the hardware that there are
     // new commands to execute.
     executor->exec();
-//    std::cout << "lserial: " << lserial->getData() << std::endl;
-//    std::cout << "rserial: " << rserial->getData() << std::endl;
 
     BOOST_TEST(contains(lserial->getData(), R"("0":{"PWM":"666")"));
     BOOST_TEST(contains(rserial->getData(), R"("1":{"PWM":"-44")"));
+}
+
+BOOST_AUTO_TEST_CASE(test_combine_all_together_single_uc)
+{
+    constexpr int wheelCount {4};
+    // Create data sinks. A data sink is any client that accepts data
+    // incoming from a chassis model.
+    using Wheel = model::Wheel<JsonSink>;
+    auto sink = std::make_shared<JsonSink>();
+    auto serial = std::make_unique<MockSerialPort>();
+
+    // Create wheel instances. These wheels must be also present in real life.
+    // Moreover, Wheel ID must be aligned with the DataSink.
+    auto leftFrontWheel = std::make_shared<Wheel>(0, sink);
+    auto leftRearWheel = std::make_shared<Wheel>(1, sink);
+    auto rightFrontWheel = std::make_shared<Wheel>(2, sink);
+    auto rightRearWheel = std::make_shared<Wheel>(3, sink);
+
+    // Create a model of the chassis.
+    auto chassis = std::make_unique<model::Chassis<Wheel, wheelCount>>();
+    chassis->addWheel(leftRearWheel);
+    chassis->addWheel(leftFrontWheel);
+    chassis->addWheel(rightFrontWheel);
+    chassis->addWheel(rightRearWheel);
+
+    // Create a command executor. It dispatches commands received from the client
+    // app
+    auto executor = std::make_shared<SequentialCommandExecutor>();
+    executor->setNotifier([&chassis, &sink, &serial](std::vector<WheelSendMessage> &&message)
+    {
+        chassis->notify(std::move(message));
+        // This is a must because each wheel receives a command and sends a correct value
+        // into the JsonSink. There, JsonSink has all data that must be sent into a single
+        // microcontroller. Of course, this action may be deferred in time but it must
+        // be done otherwise no command will be issued to the microcontroller.
+        serial->write(sink->toString());
+    });
+
+    // Retrieves a visitor responsible for receivng external commands.
+    auto visitor = std::make_unique<rpc::GrpcChassisController>(wheelCount, executor);
+
+    // This command shall be sent by a client application
+    rpc::svc::PwmDriveCommand pwm;
+    pwm.set_lpwm(666);
+    pwm.set_rpwm(-44);
+
+    // This command accepts a command from the remote application.
+    visitor->accept(pwm);
+
+    // Usually it is a good habit to inform the hardware that there are
+    // new commands to execute.
+    executor->exec();
+
+    BOOST_TEST(contains(serial->getData(), R"("0":{"PWM":"666")"));
+    BOOST_TEST(contains(serial->getData(), R"("1":{"PWM":"666")"));
+    BOOST_TEST(contains(serial->getData(), R"("2":{"PWM":"-44")"));
+    BOOST_TEST(contains(serial->getData(), R"("3":{"PWM":"-44")"));
 }
