@@ -14,6 +14,10 @@
 #include "chassis.h"
 #include "wheel.h"
 
+#include "grpcchassiscontroller.h"
+#include "grpcchassisvisitor.h"
+#include "service.pb.h"
+
 
 template<typename T>
 bool contains(std::string root, T value)
@@ -137,4 +141,28 @@ BOOST_AUTO_TEST_CASE(test_register_in_chassis)
 
     BOOST_TEST(contains(lserial->getData(), R"("0":{"PWM":"200")"));
     BOOST_TEST(contains(rserial->getData(), R"("1":{"PWM":"-200")"));
+}
+
+BOOST_AUTO_TEST_CASE(test_pwm_visitor)
+{
+    constexpr int wheelCount {2};
+    std::vector<WheelSendMessage> messages;
+    auto executor = std::make_shared<SequentialCommandExecutor>();
+    executor->setNotifier([&messages](auto &&msgs)
+    {
+        messages = std::move(msgs);
+    });
+
+    std::unique_ptr<rpc::GrpcChassisVisitor> visitor {
+        std::make_unique<rpc::GrpcChassisController>(wheelCount, executor)
+    };
+    rpc::svc::PwmDriveCommand pwm;
+    pwm.set_lpwm(128);
+    pwm.set_rpwm(-200);
+    visitor->accept(pwm);
+    executor->exec();
+
+    BOOST_ASSERT(wheelCount == messages.size());
+    BOOST_CHECK_EQUAL(128, extract(messages, 0));
+    BOOST_CHECK_EQUAL(-200, extract(messages, 1));
 }

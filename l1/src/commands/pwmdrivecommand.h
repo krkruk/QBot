@@ -31,7 +31,7 @@ public:
      * @brief PwmDriveCommand Constructor
      * @param wheelCount How many wheels are present in the chassis.
      */
-    PwmDriveCommand(unsigned int wheelCount);
+    explicit PwmDriveCommand(unsigned int wheelCount);
 
     /**
      * @brief Destructor

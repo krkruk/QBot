@@ -22,12 +22,16 @@ include_directories(
     ../src/model
     ../src/utils
     ../src/commands
+    ../src/rpc
+    ../protos
     )
 link_directories(
     ../src
     ../src/messages
     ../src/model
     ../src/commands
+    ../src/rpc
+    ../protos
     )
 
 
@@ -38,8 +42,18 @@ add_test(
     COMMAND $<TARGET_FILE:core_tests>
 )
 
-target_include_directories(core_chassis_test PRIVATE ${BOOST_INCLUDE_DIRS})
-target_link_libraries(core_chassis_test level_one_impl ${Boost_LIBRARIES})
+find_package(Protobuf REQUIRED)
+target_include_directories(core_chassis_test PRIVATE
+    ${BOOST_INCLUDE_DIRS}
+    ${Protobuf_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_BINARY_DIR}
+)
+target_link_libraries(core_chassis_test
+    level_one_impl
+    protobuf_svc
+    ${Boost_LIBRARIES}
+    ${Protobuf_LIBRARIES}
+)
 add_test(
     NAME test_chassis_model
     COMMAND $<TARGET_FILE:core_chassis_test>

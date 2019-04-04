@@ -25,6 +25,9 @@ add_library(level_one_impl
     "commands/sequentialcommandexecutor.cpp"
     "rpc/chassisserviceimpl.h"
     "rpc/chassisserviceimpl.cpp"
+    "rpc/grpcchassisvisitor.h"
+    "rpc/grpcchassiscontroller.h"
+    "rpc/grpcchassiscontroller.cpp"
     )
 
 include_directories(
