@@ -27,10 +27,10 @@ public:
      */
     void addWheel(std::weak_ptr<WheelClass> wheel)
     {
-        static unsigned wheel_counter;
-        if (wheel_counter < WHEELS)
+        auto sh_wheel = wheel.lock();
+        if (sh_wheel && sh_wheel->getId() < WHEELS)
         {
-            wheels[wheel_counter++] = wheel;
+            wheels[sh_wheel->getId()] = wheel;
         }
         else
         {

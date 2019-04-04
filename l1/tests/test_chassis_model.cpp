@@ -166,3 +166,51 @@ BOOST_AUTO_TEST_CASE(test_pwm_visitor)
     BOOST_CHECK_EQUAL(128, extract(messages, 0));
     BOOST_CHECK_EQUAL(-200, extract(messages, 1));
 }
+
+BOOST_AUTO_TEST_CASE(test_combine_all_together_separate_microcontrollers)
+{
+    constexpr int wheelCount {2};
+    // Create data sinks. A data sink is any client that accepts data
+    // incoming from a chassis model.
+    using Wheel = model::Wheel<MockSerialPort>;
+    auto lserial = std::make_shared<MockSerialPort>();
+    auto rserial = std::make_shared<MockSerialPort>();
+
+    // Create wheel instances. These wheels must be also present in real life.
+    // Moreover, Wheel ID must be aligned with the DataSink.
+    auto leftWheel = std::make_shared<Wheel>(0, lserial);
+    auto rightWheel = std::make_shared<Wheel>(1, rserial);
+
+    // Create a model of the chassis.
+    auto chassis = std::make_unique<model::Chassis<Wheel, wheelCount>>();
+    chassis->addWheel(leftWheel);
+    chassis->addWheel(rightWheel);
+
+    // Create a command executor. It dispatches commands received from the client
+    // app
+    auto executor = std::make_shared<SequentialCommandExecutor>();
+    executor->setNotifier([&chassis](std::vector<WheelSendMessage> &&message)
+    {
+        chassis->notify(std::move(message));
+    });
+
+    // Retrieves a visitor responsible for receivng external commands.
+    auto visitor = std::make_unique<rpc::GrpcChassisController>(wheelCount, executor);
+
+    // This command shall be sent by a client application
+    rpc::svc::PwmDriveCommand pwm;
+    pwm.set_lpwm(666);
+    pwm.set_rpwm(-44);
+
+    // This command accepts a command from the remote application.
+    visitor->accept(pwm);
+
+    // Usually it is a good habit to inform the hardware that there are
+    // new commands to execute.
+    executor->exec();
+//    std::cout << "lserial: " << lserial->getData() << std::endl;
+//    std::cout << "rserial: " << rserial->getData() << std::endl;
+
+    BOOST_TEST(contains(lserial->getData(), R"("0":{"PWM":"666")"));
+    BOOST_TEST(contains(rserial->getData(), R"("1":{"PWM":"-44")"));
+}
