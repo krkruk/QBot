@@ -1,6 +1,13 @@
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 project(protobuf_service)
+
+if (NOT "${CMAKE_CURRENT_SOURCE_DIR}/service.pb.h")
+    execute_process(
+        COMMAND /bin/sh ${CMAKE_CURRENT_SOURCE_DIR}/generate.sh
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+endif (NOT "${CMAKE_CURRENT_SOURCE_DIR}/service.pb.h")
+
 add_library(protobuf_svc
     "service.pb.h"
     "service.pb.cc"
