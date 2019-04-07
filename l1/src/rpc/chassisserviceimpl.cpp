@@ -1,4 +1,6 @@
 #include "chassisserviceimpl.h"
+#include "grpcchassisvisitor.h"
+
 
 namespace
 {
@@ -9,18 +11,23 @@ namespace
     }
 }
 
+ChassisServiceImpl::ChassisServiceImpl(
+        std::weak_ptr<rpc::GrpcChassisVisitor> visitor,
+        std::function<void()> onResolvedAction)
+    : rpc::svc::ChassisService::Service{},
+      visitor{visitor},
+      notify{onResolvedAction}
+{
+}
+
 grpc::Status ChassisServiceImpl::drivePwm(
         grpc::ServerContext *context,
         const rpc::svc::PwmDriveCommand *request,
         rpc::svc::CommandResult *response)
 {
-    unused(request);
     unused(context);
-    unused(response);
 
-    response->set_result(rpc::svc::CommandResult::OK);
-    response->set_description("It works!");
-    return grpc::Status::OK;
+    return resolve(response, *request);
 }
 
 grpc::Status ChassisServiceImpl::driveDifferential(
@@ -28,12 +35,9 @@ grpc::Status ChassisServiceImpl::driveDifferential(
         const rpc::svc::DifferentialDriveCommand *request,
         rpc::svc::CommandResult *response)
 {
-    unused(request);
     unused(context);
-    unused(response);
 
-    return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
-                        "Mismatched status code");
+    return resolve(response, *request);
 }
 
 
@@ -48,4 +52,23 @@ grpc::Status ChassisServiceImpl::startPeripheralDevice(
 
     return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
                         "Mismatched status code");
+}
+
+template<typename Message>
+grpc::Status ChassisServiceImpl::resolve(
+        rpc::svc::CommandResult *response, const Message &message)
+{
+    if (auto sh_visitor = visitor.lock())
+    {
+        sh_visitor->accept(message);
+        response->set_result(rpc::svc::CommandResult::OK);
+        notify();
+        return grpc::Status::OK;
+    }
+    else
+    {
+        response->set_result(rpc::svc::CommandResult::FAILURE);
+        return grpc::Status(grpc::StatusCode::INTERNAL,
+                            "Cannot access serial devices.");
+    }
 }

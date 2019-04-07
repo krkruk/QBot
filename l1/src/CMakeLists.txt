@@ -30,7 +30,7 @@ add_library(level_one_impl
     "rpc/grpcchassisvisitor.h"
     "rpc/grpcchassiscontroller.h"
     "rpc/grpcchassiscontroller.cpp"
-    )
+)
 
 include_directories(
     ./messages
@@ -40,9 +40,14 @@ include_directories(
     ./rpc
     ./serial
     ../protos
-    )
+)
 
-add_executable(${PROJECT_NAME} "main.cpp")
+add_executable(${PROJECT_NAME}
+    "main.cpp"
+    "grpcserver.h"
+    "grpcserver.cpp"
+)
+
 target_link_libraries(${PROJECT_NAME} level_one_impl)
 target_link_libraries(${PROJECT_NAME} protobuf_svc)
 
