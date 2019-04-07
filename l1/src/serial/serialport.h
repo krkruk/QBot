@@ -1,13 +1,15 @@
 #ifndef SERIALPORT_H
 #define SERIALPORT_H
+#include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/serial_port.hpp>
 #include <boost/asio/io_context.hpp>
-#include <boost/asio/deadline_timer.hpp>
+#include <boost/log/trivial.hpp>
 #include <functional>
 #include <iostream>
 #include <sstream>
 #include <memory>
 #include <string>
+#include <vector>
 #include <array>
 
 namespace serial
@@ -28,7 +30,7 @@ struct PrintContent
      */
     void operator()(const std::string &line)
     {
-        std::cout << line << std::endl;
+        BOOST_LOG_TRIVIAL(trace) << line;
     }
 };
 
@@ -61,11 +63,25 @@ public:
      */
     void operator()(const char *data, std::streamsize bytes_received)
     {
-        (void) bytes_received;
         ss.write(data, bytes_received);
 
         std::string line;
-        if (std::getline(ss, line))
+        /**
+         * Here we have a bug.
+         * To read correctly a line, it is necessary to check in '\n' exists
+         * anywhere in the string not just in the last position.
+         * getline() returns true if:
+         *  * reaches EOF
+         *  * find '\n'
+         *  * line.max_size() is reached
+         *
+         * Problematic is reaching of EOF because it falsly generates a new
+         * line if a data package is incomplete (does not contain '\n').
+         *
+         * This must be fixed it some time in the future but for now
+         * it works...
+         */
+        if (data[bytes_received - 1] == '\n' && std::getline(ss, line))
         {
             callback(line);
         }

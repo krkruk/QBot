@@ -1,11 +1,6 @@
 #include "serialportinfo.h"
 #include "serialport.h"
 
-#include <boost/log/trivial.hpp>
-#include <iostream>
-
-
-
 template<typename Algorithm>
 serial::SerialPort<Algorithm>::SerialPort(boost::asio::io_context &ctx,
                                                     const std::string &portName,
@@ -84,6 +79,15 @@ void serial::SerialPort<Algorithm>::on_message_received(const boost::system::err
 {
     if (!e && bytes_received)
     {
+        /**
+         * Left for debugging in future. Might be useful. If not, just delete it.
+         */
+//        std::cout << "line: ";
+//        for (std::streamsize i{0}; i < bytes_received; ++i)
+//        {
+//            std::cout << (int) read_bytes[i] << ' ';
+//        }
+//        std::cout << std::endl;
         alg(read_bytes.data(), bytes_received);
         connect_message_read();
     }
