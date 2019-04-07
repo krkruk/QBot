@@ -1,5 +1,7 @@
 #include "chassismodel.h"
+
 #include <boost/asio/io_context.hpp>
+#include <algorithm>
 #include "grpcchassiscontroller.h"
 
 constexpr unsigned ChassisModel::WHEEL_COUNT;
@@ -32,7 +34,16 @@ ChassisModel::ChassisModel(
     });
     visitor = std::make_shared<rpc::GrpcChassisController>(WHEEL_COUNT,
                                                            executor);
-}
+    }
+
+    bool ChassisModel::checkSerialHealth() const
+    {
+        return std::all_of(std::cbegin(serials), std::cend(serials),
+                           [](std::shared_ptr<Serial> serial) -> bool
+        {
+            return *serial;
+        });
+    }
 
 void ChassisModel::on_message_receive(std::vector<WheelSendMessage> &&message)
 {

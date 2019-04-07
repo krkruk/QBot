@@ -9,13 +9,6 @@
 #include "chassismodel.h"
 #include "grpcserver.h"
 
-namespace
-{
-    using Serial = serial::SerialPort<serial::ReadLineAlgorithm<serial::PrintContent>>;
-    using Wheel = model::Wheel<Serial>;
-    constexpr int wheelCount {2};
-}
-
 auto detect_serials()
 {
     serial::SerialDeviceFinder finder;
@@ -26,7 +19,7 @@ auto detect_serials()
                                 << " @ port=" << serial.second.getPortName();
     }
 
-    if (mapped_serials.size() < wheelCount)
+    if (mapped_serials.size() < ChassisModel::wheelCount())
     {
         BOOST_LOG_TRIVIAL(error) << "Some serials have not been detected. Quit.";
         exit(-1);
@@ -44,7 +37,8 @@ int main()
     {
         if (!err)
         {
-            BOOST_LOG_TRIVIAL(error) << "Signal received: " << sig_num << std::endl;
+            BOOST_LOG_TRIVIAL(error) << "Signal received: " << sig_num
+                                     << ", " << err;
             io_ctx.stop();
             exit_code = sig_num;
             BOOST_LOG_TRIVIAL(info) << "IO Context has been stopped.";
@@ -54,6 +48,11 @@ int main()
     auto mapped_serials = detect_serials();
     ChassisModel model{io_ctx, mapped_serials};
     GrpcServer grpc_server{model.getExecutor(), model.getVisitor()};
+    boost::asio::steady_timer timer{io_ctx, boost::asio::chrono::seconds{10}};
+    timer.async_wait([&model](const auto &)
+    {
+        BOOST_LOG_TRIVIAL(info) << "Serials OK?" << model.checkSerialHealth();
+    });
     io_ctx.run();
     return exit_code;
 }
