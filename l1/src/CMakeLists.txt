@@ -2,9 +2,11 @@ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 project(level_one)
 add_library(level_one_impl
-    "serialport.h"
-    "serialportinfo.cpp"
-    "serialportinfo.h"
+    "serial/serialport.h"
+    "serial/serialportinfo.cpp"
+    "serial/serialportinfo.h"
+    "serial/serialdevicefinder.h"
+    "serial/serialdevicefinder.cpp"
     "messages/wheelsendmessage.cpp"
     "messages/wheelsendmessage.h"
     "messages/wheelrecvmessage.cpp"
@@ -36,6 +38,7 @@ include_directories(
     ./utils
     ./commands
     ./rpc
+    ./serial
     ../protos
     )
 

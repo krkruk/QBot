@@ -4,7 +4,7 @@
 
 namespace
 {
-    constexpr char ID = '1';               // ID of the device
+    constexpr char ID = '0';               // ID of the device
     constexpr uint8_t DIRECTION_PIN = 7;
     constexpr uint8_t CURRENT_FEEDBACK = A7;
 }

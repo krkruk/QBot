@@ -18,6 +18,7 @@ add_definitions(-DBOOST_LOG_DYN_LINK)
 
 include_directories(
     ../src
+    ../src/serial
     ../src/messages
     ../src/model
     ../src/utils
@@ -27,6 +28,7 @@ include_directories(
     )
 link_directories(
     ../src
+    ../src/serial
     ../src/messages
     ../src/model
     ../src/commands
