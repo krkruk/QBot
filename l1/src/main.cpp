@@ -1,24 +1,12 @@
 #include <boost/asio/steady_timer.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/signal_set.hpp>
+#include <unordered_map>
 #include <iostream>
 #include <vector>
-#include <thread>
-#include <atomic>
-#include <chrono>
 
 #include "serialdevicefinder.h"
-#include "serialportinfo.h"
-#include "serialport.h"
-
-#include "sequentialcommandexecutor.h"
-#include "grpcchassiscontroller.h"
-#include "chassisserviceimpl.h"
-#include "wheelsendmessage.h"
-#include "drivecommand.h"
-#include "chassis.h"
-#include "wheel.h"
-
+#include "chassismodel.h"
 #include "grpcserver.h"
 
 namespace
@@ -56,31 +44,16 @@ int main()
     {
         if (!err)
         {
-            BOOST_LOG_TRIVIAL(error) << "Error: " << sig_num << std::endl;
+            BOOST_LOG_TRIVIAL(error) << "Signal received: " << sig_num << std::endl;
             io_ctx.stop();
             exit_code = sig_num;
+            BOOST_LOG_TRIVIAL(info) << "IO Context has been stopped.";
         }
     });
 
     auto mapped_serials = detect_serials();
-    auto lserial = std::make_shared<Serial>(io_ctx, mapped_serials["0"], serial::PrintContent{});
-    auto rserial = std::make_shared<Serial>(io_ctx, mapped_serials["1"], serial::PrintContent{});
-
-    auto leftWheel = std::make_shared<Wheel>(0, lserial);
-    auto rightWheel = std::make_shared<Wheel>(1, rserial);
-
-    auto chassis = std::make_unique<model::Chassis<Wheel, wheelCount>>();
-    chassis->addWheel(leftWheel);
-    chassis->addWheel(rightWheel);
-
-    auto executor = std::make_shared<SequentialCommandExecutor>();
-    executor->setNotifier([&chassis](std::vector<WheelSendMessage> &&message)
-    {
-        chassis->notify(std::move(message));
-    });
-
-    auto visitor = std::make_shared<rpc::GrpcChassisController>(wheelCount, executor);
-    GrpcServer grpc_server(executor, visitor);
+    ChassisModel model{io_ctx, mapped_serials};
+    GrpcServer grpc_server{model.getExecutor(), model.getVisitor()};
     io_ctx.run();
     return exit_code;
 }

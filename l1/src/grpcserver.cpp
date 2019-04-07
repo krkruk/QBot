@@ -1,4 +1,5 @@
 #include "grpcserver.h"
+
 #include <boost/log/trivial.hpp>
 #include <grpc++/grpc++.h>
 #include <thread>
@@ -39,6 +40,7 @@ void GrpcServer::kill()
         BOOST_LOG_TRIVIAL(info) << "About to shutdown the grpc server.";
         server->Shutdown();
         BOOST_LOG_TRIVIAL(info) << "The grpc server has been shut down.";
+        server.reset();
     }
 }
 
