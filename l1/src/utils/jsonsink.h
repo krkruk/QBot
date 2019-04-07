@@ -45,5 +45,13 @@ public:
      * @return a serialized message
      */
     std::string toString(bool pretty = false) const;
+
+    /**
+     * @brief operator bool Data can be always sent to sink.
+     */
+    operator bool() const
+    {
+        return true;
+    }
 };
 #endif // JSONSINK_H

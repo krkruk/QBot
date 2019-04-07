@@ -50,6 +50,14 @@ public:
     {
         return data;
     }
+
+    /**
+     * @brief operator bool This is a mock serial so it always works :D
+     */
+    operator bool() const
+    {
+        return true;
+    }
 };
 
 BOOST_AUTO_TEST_CASE(test_send_message_to_sink)

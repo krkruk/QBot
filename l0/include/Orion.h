@@ -70,7 +70,7 @@ private:
     {
         if (root.success())
         {
-            int16_t speed = root[String(ID)]["ROT"];
+            int16_t speed = root[String(ID)]["PWM"];
             motor.setSpeed(speed);
         }
     }

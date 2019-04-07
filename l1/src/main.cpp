@@ -1,16 +1,25 @@
-#include <iostream>
+#include <boost/asio/steady_timer.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/signal_set.hpp>
-#include <boost/asio/steady_timer.hpp>
+#include <iostream>
+#include <vector>
+#include <chrono>
 
-#include "serialport.h"
-#include "serialportinfo.h"
 #include "serialdevicefinder.h"
+#include "serialportinfo.h"
+#include "serialport.h"
 
-#include "wheel.h"
 #include "sequentialcommandexecutor.h"
-#include "wheelsendmessage.h"
+#include "grpcchassiscontroller.h"
 #include "chassisserviceimpl.h"
+#include "wheelsendmessage.h"
+#include "drivecommand.h"
+#include "chassis.h"
+#include "wheel.h"
+
+#include <google/protobuf/util/json_util.h>
+#include "service.pb.h"
+
 
 int main()
 {
@@ -42,12 +51,53 @@ int main()
         exit(-1);
     }
 
-    // Create data sinks. A data sink is any client that accepts data
-    // incoming from a chassis model.
     using Serial = serial::SerialPort<serial::ReadLineAlgorithm<serial::PrintContent>>;
-//    using Wheel = model::Wheel<Serial>;
+    using Wheel = model::Wheel<Serial>;
     auto lserial = std::make_shared<Serial>(io_ctx, mapped_serials["0"], serial::PrintContent{});
     auto rserial = std::make_shared<Serial>(io_ctx, mapped_serials["1"], serial::PrintContent{});
+
+    auto leftWheel = std::make_shared<Wheel>(0, lserial);
+    auto rightWheel = std::make_shared<Wheel>(1, rserial);
+
+    auto chassis = std::make_unique<model::Chassis<Wheel, wheelCount>>();
+    chassis->addWheel(leftWheel);
+    chassis->addWheel(rightWheel);
+
+    auto executor = std::make_shared<SequentialCommandExecutor>();
+    executor->setNotifier([&chassis](std::vector<WheelSendMessage> &&message)
+    {
+        chassis->notify(std::move(message));
+    });
+
+    auto visitor = std::make_unique<rpc::GrpcChassisController>(wheelCount, executor);
+
+    // This is just to show it works
+    boost::asio::steady_timer timer{io_ctx, boost::asio::chrono::seconds{5}};
+    timer.async_wait([&visitor, &executor](const auto &)
+    {
+        rpc::svc::PwmDriveCommand pwm;
+        pwm.set_lpwm(255);
+        pwm.set_rpwm(255);
+
+        std::string buff;
+        google::protobuf::util::MessageToJsonString(pwm, &buff);
+        BOOST_LOG_TRIVIAL(info) << "Sending a message: " << buff;
+        visitor->accept(pwm);
+        executor->exec();
+    });
+    boost::asio::steady_timer timer_restore{io_ctx, boost::asio::chrono::seconds{10}};
+    timer_restore.async_wait([&visitor, &executor](const auto &)
+    {
+        rpc::svc::PwmDriveCommand pwm;
+        pwm.set_lpwm(0);
+        pwm.set_rpwm(0);
+
+        std::string buff;
+        google::protobuf::util::MessageToJsonString(pwm, &buff);
+        BOOST_LOG_TRIVIAL(info) << "Sending a message: " << buff;
+        visitor->accept(pwm);
+        executor->exec();
+    });
 
 //    ChassisServiceImpl service;
 //    grpc::ServerBuilder builder;

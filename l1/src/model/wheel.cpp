@@ -1,4 +1,5 @@
 #include "wheel.h"
+#include <boost/log/trivial.hpp>
 
 
 template<typename DataSink>
@@ -25,6 +26,13 @@ void model::Wheel<DataSink>::sendMessage(const Message &msg)
 {
     if (auto sh_sink = sink.lock())
     {
-        sh_sink->write(msg);
+        if (*sh_sink)
+        {
+            sh_sink->write(msg);
+        }
+        else
+        {
+            BOOST_LOG_TRIVIAL(error) << "Cannot write data. The data sink is unavailable.";
+        }
     }
 }
