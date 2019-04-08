@@ -1,8 +1,8 @@
-#include <QGuiApplication>
 #include <QQmlApplicationEngine>
-#include <QTimer>
+#include <QGuiApplication>
+#include <QDebug>
 
-#include "grpcclient.h"
+#include "appengine.h"
 
 
 int main(int argc, char *argv[])
@@ -11,18 +11,16 @@ int main(int argc, char *argv[])
 
     QGuiApplication app(argc, argv);
 
+    AppEngine apk(grpc::CreateChannel(
+                      "localhost:5000",
+                      grpc::InsecureChannelCredentials()));
+
     QQmlApplicationEngine engine;
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
     if (engine.rootObjects().isEmpty())
-        return -1;
-
-    GrpcClient c(grpc::CreateChannel("localhost:5000", grpc::InsecureChannelCredentials()));
-    QTimer::singleShot(5000, &app, [&c]()
     {
-        c.sendPwm(255, 255, [](const grpc::Status &s)
-        {
-            std::cout << "Status: " << s.ok() << std::endl;
-        });
-    });
+        return -1;
+    }
+
     return app.exec();
 }

@@ -1,4 +1,4 @@
-QT += quick
+QT += quick gamepad
 CONFIG += c++14
 
 # The following define makes your compiler emit warnings if you use
@@ -15,12 +15,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         $$PWD/../l1/protos/service.pb.cc \
-        $$PWD/../l1/protos/service.grpc.pb.cc
+        $$PWD/../l1/protos/service.grpc.pb.cc \
+    appengine.cpp
 
 HEADERS += \
         $$PWD/../l1/protos/service.pb.h \
         $$PWD/../l1/protos/service.grpc.pb.h \
-        grpcclient.h
+        grpcclient.h \
+    appengine.h
 
 INCLUDEPATH += \
         $$PWD/../l1/protos
