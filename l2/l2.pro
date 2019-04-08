@@ -19,7 +19,8 @@ SOURCES += \
 
 HEADERS += \
         $$PWD/../l1/protos/service.pb.h \
-        $$PWD/../l1/protos/service.grpc.pb.h
+        $$PWD/../l1/protos/service.grpc.pb.h \
+        grpcclient.h
 
 INCLUDEPATH += \
         $$PWD/../l1/protos
@@ -46,6 +47,7 @@ gRPC_LIBS = $$system(pkg-config --libs protobuf grpc++ grpc) \
     -lgrpc++_reflection \
     -ldl
 
+LIBS += -lboost_system -lboost_thread
 LIBS += $$gRPC_LIBS
 OTHER_FILES += \
         $$PWD/../l1/protos/service.proto
