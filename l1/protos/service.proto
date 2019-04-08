@@ -1,13 +1,14 @@
 syntax = "proto3";
 
 package rpc.svc;
-
+import "google/protobuf/empty.proto";
 
 service ChassisService 
 {
     rpc drivePwm (PwmDriveCommand) returns (CommandResult);
     rpc driveDifferential (DifferentialDriveCommand) returns (CommandResult);
     rpc startPeripheralDevice (PeripheralDeviceCommand) returns (PeripheralDeviceCommand);
+    rpc getWheelFeedback(google.protobuf.Empty) returns (AllWheelFeedback);
 }
   
 message CommandResult
@@ -85,4 +86,19 @@ message PeripheralDeviceCommand
 
     Device device = 1;
     Status status = 2;
+}
+
+message WheelFeedback
+{
+    int32 id = 1;
+    int32 milliamps = 2;
+    int32 pwm = 3;
+    int32 error_code = 4;
+    double angular_velocity = 5;
+    double celsius = 6;
+}
+
+message AllWheelFeedback
+{
+    repeated WheelFeedback wheels = 1;
 }

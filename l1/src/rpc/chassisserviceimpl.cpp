@@ -40,11 +40,23 @@ grpc::Status ChassisServiceImpl::driveDifferential(
     return resolve(response, *request);
 }
 
-
 grpc::Status ChassisServiceImpl::startPeripheralDevice(
         grpc::ServerContext *context,
         const rpc::svc::PeripheralDeviceCommand *request,
         rpc::svc::PeripheralDeviceCommand *response)
+{
+    unused(request);
+    unused(context);
+    unused(response);
+
+    return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
+                        "Mismatched status code");
+}
+
+grpc::Status ChassisServiceImpl::getWheelFeedback(
+        grpc::ServerContext *context,
+        const google::protobuf::Empty *request,
+        rpc::svc::AllWheelFeedback *response)
 {
     unused(request);
     unused(context);
@@ -72,3 +84,4 @@ grpc::Status ChassisServiceImpl::resolve(
                             "Cannot access serial devices.");
     }
 }
+

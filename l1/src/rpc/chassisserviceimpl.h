@@ -17,7 +17,8 @@ class ChassisServiceImpl : public rpc::svc::ChassisService::Service
     std::weak_ptr<rpc::GrpcChassisVisitor> visitor;
     std::function<void()> notify;
 public:
-    explicit ChassisServiceImpl(std::weak_ptr<rpc::GrpcChassisVisitor> visitor, std::function<void()> onResolvedAction);
+    explicit ChassisServiceImpl(std::weak_ptr<rpc::GrpcChassisVisitor> visitor,
+                                std::function<void()> onResolvedAction);
 
     ~ChassisServiceImpl() override = default;
 
@@ -32,6 +33,10 @@ public:
     grpc::Status startPeripheralDevice(grpc::ServerContext *context,
                                        const rpc::svc::PeripheralDeviceCommand *request,
                                        rpc::svc::PeripheralDeviceCommand *response) override;
+
+    grpc::Status getWheelFeedback(grpc::ServerContext *context,
+                                  const google::protobuf::Empty *request,
+                                  rpc::svc::AllWheelFeedback *response) override;
 
 private:
     template<typename Message>
