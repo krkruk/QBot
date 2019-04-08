@@ -82,7 +82,7 @@ private:
         const uint16_t current = motor.getMilliamps();
         JsonObject &root = jsonBuffer.createObject();
         JsonObject &feedback = root.createNestedObject(String(ID));
-        feedback["ROT"] = speed;
+        feedback["PWM"] = speed;
         feedback["CUR"] = current;
         feedback["ERR"] = motor.STATE.error();
         root.printTo(Serial);
