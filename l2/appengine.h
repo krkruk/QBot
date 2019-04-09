@@ -15,6 +15,7 @@ class AppEngine : public QObject
 {
     Q_OBJECT
     static constexpr int GAMEPAD_TIMER_INTERVAL_MS = 50;
+    static constexpr int TELEMETRY_TIMER_INTERVAL_MS = 1000;
     static constexpr int MIN_MULTIPLIER { -1 };
     static constexpr int REVERT_AXIS { true ? -1 : 1 };
     static constexpr double DEAD_ZONE_PERCENT { 0.10 };
@@ -28,6 +29,7 @@ signals:
 
 private slots:
     void onGamepadTimeout();
+    void onTelemetryTimeout();
 
     void onServerReplyStatusReceived(const grpc::Status &status);
 
@@ -38,6 +40,7 @@ private:
 
     std::unique_ptr<GrpcClient> grpc;
     std::unique_ptr<QTimer> gamepadTimer;
+    std::unique_ptr<QTimer> telemetryTimer;
     QPointer<QGamepad> gamepad;
 
     int inputMultiplier { 255 };

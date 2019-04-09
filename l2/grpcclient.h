@@ -44,6 +44,14 @@ public:
         });
     }
 
+    void getTelemetry(std::function<void(const rpc::svc::AllWheelFeedback &)> callback)
+    {
+        boost::asio::post(th_pool, [this, callback]()
+        {
+           this->get_telemetry(callback);
+        });
+    }
+
 private:
     void send_pwm(const rpc::svc::PwmDriveCommand &pwm, std::function<void(const grpc::Status &)> callback)
     {
@@ -52,9 +60,22 @@ private:
         grpc::Status status;
         {
             std::lock_guard<std::mutex> _(mtx);
-            stub->drivePwm(&ctx, pwm, &response);
+            status = stub->drivePwm(&ctx, pwm, &response);
         }
         callback(status);
+    }
+
+    void get_telemetry(std::function<void(const rpc::svc::AllWheelFeedback &)> callback)
+    {
+        rpc::svc::AllWheelFeedback response;
+        google::protobuf::Empty empty;
+        ClientContext ctx;
+        grpc::Status status;
+        {
+            std::lock_guard<std::mutex> _(mtx);
+            status = stub->getWheelFeedback(&ctx, empty, &response);
+        }
+        callback(response);
     }
 
 };
