@@ -59,8 +59,16 @@ void ChassisModel::on_message_received(std::vector<WheelSendMessage> &&message)
 void ChassisModel::on_feedback_received(std::string feedback)
 {
     BOOST_LOG_TRIVIAL(trace) << feedback;
-    dispatcher.dispatch(feedback);
-    dispatcher.notify();
+    try
+    {
+        dispatcher.dispatch(feedback);
+        dispatcher.notify();
+    }
+    catch (std::exception &e)
+    {
+        BOOST_LOG_TRIVIAL(error) << "Could not dispatch telemetry due to: "
+                                 << e.what();
+    }
 }
 
 void ChassisModel::set_wheel_feedback(int id, boost::property_tree::ptree tree)

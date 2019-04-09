@@ -29,10 +29,7 @@ serial::SerialPort<Algorithm>::SerialPort(boost::asio::io_context &ctx,
 template<typename Algorithm>
 serial::SerialPort<Algorithm>::~SerialPort()
 {
-   if (serial->is_open())
-   {
-       on_error();
-   }
+   on_error();
 }
 
 template<typename Algorithm>
@@ -46,7 +43,10 @@ void serial::SerialPort<Algorithm>::write(const Message &data)
      * Synchronous write should suffice assuming data payload
      * is small. To make sure it is small perform assert().
      */
-    serial->write_some(boost::asio::buffer(msg));
+    if (*this)
+    {
+        serial->write_some(boost::asio::buffer(msg));
+    }
 }
 
 template<typename Algorithm>
@@ -58,17 +58,25 @@ void serial::SerialPort<Algorithm>::write(const std::string &data)
      * Synchronous write should suffice assuming data payload
      * is small. To make sure it is small perform assert().
      */
-    serial->write_some(boost::asio::buffer(data));
+    if (*this)
+    {
+        serial->write_some(boost::asio::buffer(data));
+    }
 }
 
 template<typename Algorithm>
 void serial::SerialPort<Algorithm>::connect_message_read()
 {
-    serial->async_read_some(boost::asio::buffer(read_bytes),
-                           [&](const auto &e, auto bytes_received)
+    if (*this)
     {
-        on_message_received(e, bytes_received);
-    });
+        // here is a bug when deleting an object...
+        // consider using shared_from_this to pass a reference
+        serial->async_read_some(boost::asio::buffer(read_bytes),
+                               [&](const auto &e, auto bytes_received)
+        {
+            on_message_received(e, bytes_received);
+        });
+    }
 }
 
 template<typename Algorithm>
@@ -96,7 +104,9 @@ void serial::SerialPort<Algorithm>::on_message_received(const boost::system::err
     }
     else
     {
-        BOOST_LOG_TRIVIAL(error) << "Serial error: " << e.message();
+        BOOST_LOG_TRIVIAL(error) << "Serial error: " << e.message()
+                                 << " code=" << e.value()
+                                 << " category=" << e.category().name();
         on_error();
     }
 }
@@ -104,6 +114,18 @@ void serial::SerialPort<Algorithm>::on_message_received(const boost::system::err
 template<typename Algorithm>
 void serial::SerialPort<Algorithm>::on_error()
 {
-    serial->cancel();
-    serial->close();
+    if (*this)
+    {
+        try
+        {
+            serial->cancel();
+            serial->close();
+        }
+        catch (std::exception &e)
+        {
+            BOOST_LOG_TRIVIAL(error) << "Error when canceling serial: "
+                                     << e.what();
+
+        }
+    }
 }
