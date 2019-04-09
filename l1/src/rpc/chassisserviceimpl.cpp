@@ -13,10 +13,12 @@ namespace
 
 ChassisServiceImpl::ChassisServiceImpl(
         std::weak_ptr<rpc::GrpcChassisVisitor> visitor,
-        std::function<void()> onResolvedAction)
+        std::function<void()> onResolvedAction,
+        std::function<void(rpc::svc::AllWheelFeedback *)> fillTelemetry)
     : rpc::svc::ChassisService::Service{},
       visitor{visitor},
-      notify{onResolvedAction}
+      notify{onResolvedAction},
+      fillTelemetry{fillTelemetry}
 {
 }
 
@@ -60,10 +62,17 @@ grpc::Status ChassisServiceImpl::getWheelFeedback(
 {
     unused(request);
     unused(context);
-    unused(response);
 
-    return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
-                        "Mismatched status code");
+    if (fillTelemetry)
+    {
+        fillTelemetry(response);
+        return grpc::Status::OK;
+    }
+    else
+    {
+        return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
+                            "Mismatched status code");
+    }
 }
 
 template<typename Message>

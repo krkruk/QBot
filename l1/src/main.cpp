@@ -46,12 +46,12 @@ int main()
     });
 
     auto mapped_serials = detect_serials();
-    ChassisModel model{io_ctx, mapped_serials};
-    GrpcServer grpc_server{model.getExecutor(), model.getVisitor()};
+    auto model = std::make_shared<ChassisModel>(io_ctx, mapped_serials);
+    GrpcServer grpc_server{model};
     boost::asio::steady_timer timer{io_ctx, boost::asio::chrono::seconds{10}};
     timer.async_wait([&model](const auto &)
     {
-        BOOST_LOG_TRIVIAL(info) << "Serials OK?" << model.checkSerialHealth();
+        BOOST_LOG_TRIVIAL(info) << "Serials OK?" << model->checkSerialHealth();
     });
     io_ctx.run();
     return exit_code;

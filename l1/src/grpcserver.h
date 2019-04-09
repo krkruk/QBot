@@ -5,6 +5,7 @@
 
 
 class SequentialCommandExecutor;
+class ChassisModel;
 namespace rpc
 {
 class GrpcChassisVisitor;
@@ -21,18 +22,15 @@ class Server;
  */
 class GrpcServer
 {
-    std::weak_ptr<SequentialCommandExecutor> executor;
-    std::weak_ptr<rpc::GrpcChassisVisitor> visitor;
+    std::weak_ptr<ChassisModel> model;
     std::unique_ptr<grpc::Server> server;
     std::thread server_thread;
 public:
     /**
      * @brief GrpcServer Starts an active object of gRPC server
-     * @param executor a reference to Executor
-     * @param visitor a reference to Visitor
+     * @param model serial-side model of the chassis
      */
-    explicit GrpcServer(std::weak_ptr<SequentialCommandExecutor> executor,
-                std::weak_ptr<rpc::GrpcChassisVisitor> visitor);
+    explicit GrpcServer(std::weak_ptr<ChassisModel> model);
     ~GrpcServer();
 
     /**

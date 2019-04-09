@@ -16,9 +16,11 @@ class ChassisServiceImpl : public rpc::svc::ChassisService::Service
 {
     std::weak_ptr<rpc::GrpcChassisVisitor> visitor;
     std::function<void()> notify;
+    std::function<void(rpc::svc::AllWheelFeedback *)> fillTelemetry;
 public:
     explicit ChassisServiceImpl(std::weak_ptr<rpc::GrpcChassisVisitor> visitor,
-                                std::function<void()> onResolvedAction);
+                                std::function<void()> onResolvedAction,
+                                std::function<void(rpc::svc::AllWheelFeedback *)> fillTelemetry);
 
     ~ChassisServiceImpl() override = default;
 

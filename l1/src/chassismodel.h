@@ -65,6 +65,15 @@ public:
     }
 
     /**
+     * @brief getWheels
+     * @return
+     */
+    const std::vector<std::shared_ptr<Wheel>> &getWheels() const
+    {
+        return wheels;
+    }
+
+    /**
      * @brief checkSerialHealth Checks if all serial are OK.
      * @return False if one of the serials is not OK.
      */
