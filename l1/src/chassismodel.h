@@ -5,10 +5,12 @@
 #include <memory>
 
 #include "sequentialcommandexecutor.h"
+#include "jsondispatcherprocessor.h"
 #include "grpcchassiscontroller.h"
 #include "wheelsendmessage.h"
 #include "serialportinfo.h"
 #include "drivecommand.h"
+#include "dispatcher.h"
 #include "serialport.h"
 #include "chassis.h"
 #include "wheel.h"
@@ -22,9 +24,15 @@
  */
 class ChassisModel
 {
-    using Serial = serial::SerialPort<serial::ReadLineAlgorithm<serial::PrintContent>>;
+    using Serial = serial::SerialPort<
+        serial::ReadLineAlgorithm<
+            std::function<void(std::string)>
+        >
+    >;
     using Wheel = model::Wheel<Serial>;
-
+    using ChassisDispatcher = MappedDispatcher<
+        std::string, JsonDispatcherProcessor<int, boost::property_tree::ptree>
+    >;
     static constexpr unsigned WHEEL_COUNT {2};
 public:
 
@@ -77,8 +85,11 @@ private:
     std::shared_ptr<rpc::GrpcChassisVisitor> visitor;
     std::vector<std::shared_ptr<Serial>> serials;
     std::vector<std::shared_ptr<Wheel>> wheels;
+    ChassisDispatcher dispatcher;
 
-    void on_message_receive(std::vector<WheelSendMessage> &&message);
+    void on_message_received(std::vector<WheelSendMessage> &&message);
+    void on_feedback_received(std::string feedback);
+    void set_wheel_feedback(int id, boost::property_tree::ptree tree);
 };
 
 #endif // CHASSISMODEL_H

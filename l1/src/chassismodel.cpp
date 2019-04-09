@@ -20,17 +20,23 @@ ChassisModel::ChassisModel(
         serials[port_number] = std::make_shared<Serial>(
                     io_ctx,
                     port_mapping.at(std::to_string(port_number)),
-                    serial::PrintContent{});
+                    std::bind(
+                        &ChassisModel::on_feedback_received,
+                        this, std::placeholders::_1));
 
         wheels[port_number] = std::make_shared<Wheel>(
                     port_number,
                     serials[port_number]);
         chassis->addWheel(wheels[port_number]);
+        dispatcher.addObserver(
+                    static_cast<int>(port_number),
+                    std::bind(&ChassisModel::set_wheel_feedback, this,
+                              std::placeholders::_1, std::placeholders::_2));
     }
 
     executor->setNotifier([&](std::vector<WheelSendMessage> &&message)
     {
-        on_message_receive(std::move(message));
+        on_message_received(std::move(message));
     });
     visitor = std::make_shared<rpc::GrpcChassisController>(WHEEL_COUNT,
                                                            executor);
@@ -45,7 +51,19 @@ ChassisModel::ChassisModel(
         });
     }
 
-void ChassisModel::on_message_receive(std::vector<WheelSendMessage> &&message)
+void ChassisModel::on_message_received(std::vector<WheelSendMessage> &&message)
 {
     chassis->notify(std::move(message));
+}
+
+void ChassisModel::on_feedback_received(std::string feedback)
+{
+    BOOST_LOG_TRIVIAL(trace) << feedback;
+    dispatcher.dispatch(feedback);
+    dispatcher.notify();
+}
+
+void ChassisModel::set_wheel_feedback(int id, boost::property_tree::ptree tree)
+{
+    chassis->processFeedback(Wheel::feedback_type::fromTree(id, tree));
 }
