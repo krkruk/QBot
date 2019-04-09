@@ -47,8 +47,9 @@ void GrpcServer::run()
     });
 
     grpc::ServerBuilder builder;
-    builder.AddListeningPort("0.0.0.0:5000",
-                             grpc::InsecureServerCredentials())
+    builder.AddListeningPort(
+                "0.0.0.0:5000",
+                grpc::InsecureServerCredentials())
             .RegisterService(&service);
     server = std::unique_ptr<grpc::Server>(builder.BuildAndStart());
 

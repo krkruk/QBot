@@ -89,7 +89,11 @@ BOOST_AUTO_TEST_CASE(test_dispatching_json)
     std::string json_received;
 
     const std::string json{R"({"1":{"ROT":"20.0","CUR":"1260","TMP":"26.0","PWM":"-200","ERR":"0"}})"};
-    auto callback = [&identifier, &json_received](int id, std::string data){identifier = id;json_received = data;};
+    auto callback = [&identifier, &json_received](int id, std::string data)
+    {
+        identifier = id;
+        json_received = data;
+    };
     MappedDispatcher<std::string,
         JsonDispatcherProcessor<int, std::string>> dispatcher;
 

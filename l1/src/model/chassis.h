@@ -60,6 +60,43 @@ public:
             }
         }
     }
+
+    /**
+     * @brief processFeedback The method receives a parsed feedback_type
+     * message to be stored by a WheelClass instance. This is to provide
+     * some feedback data to any clients that may query the application.
+     *
+     * The data usually comprises telemetry such as temperature, milliamps etc.
+     * @param message WheelMessage type
+     */
+    void processFeedback(typename WheelClass::feedback_type &&message)
+    {
+        const auto id = message.getId();
+        if (id < wheel_count)
+        {
+            if (auto wheel = wheels[id].lock())
+            {
+                wheel->setFeedback(std::move(message));
+            }
+        }
+    }
+
+    const typename WheelClass::feedback_type *state(int id) const
+    {
+        if (id >= wheel_count)
+        {
+            throw  std::invalid_argument("Invalid wheel number.");
+        }
+
+        if (const auto wheel = wheels[id].lock())
+        {
+            return wheel->state();
+        }
+        else
+        {
+            throw  std::runtime_error("Cannot get instance to WheelClass.");
+        }
+    }
 };
 
 }

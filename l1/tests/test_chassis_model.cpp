@@ -8,8 +8,11 @@
 #include <string>
 
 #include "sequentialcommandexecutor.h"
+#include "jsondispatcherprocessor.h"
 #include "wheelsendmessage.h"
+#include "wheelrecvmessage.h"
 #include "pwmdrivecommand.h"
+#include "dispatcher.h"
 #include "jsonsink.h"
 #include "chassis.h"
 #include "wheel.h"
@@ -149,6 +152,75 @@ BOOST_AUTO_TEST_CASE(test_register_in_chassis)
 
     BOOST_TEST(contains(lserial->getData(), R"("0":{"PWM":"200")"));
     BOOST_TEST(contains(rserial->getData(), R"("1":{"PWM":"-200")"));
+}
+
+BOOST_AUTO_TEST_CASE(test_register_feedback_message)
+{
+    using Wheel = model::Wheel<MockSerialPort>;
+    constexpr int wheelCount {2};
+    auto lserial = std::make_shared<MockSerialPort>();
+    auto rserial = std::make_shared<MockSerialPort>();
+    auto leftWheel = std::make_shared<Wheel>(0, lserial);
+    auto rightWheel = std::make_shared<Wheel>(1, rserial);
+    auto chassis = std::make_unique<model::Chassis<Wheel, wheelCount>>();
+    chassis->addWheel(leftWheel);
+    chassis->addWheel(rightWheel);
+
+    auto lmsg = WheelRecvMessage::fromRaw(0, R"({"PWM":200,"CUR":2800})");
+    auto rmsg = WheelRecvMessage::fromRaw(1, R"({"PWM":-200,"CUR":500})");
+
+    chassis->processFeedback(std::move(lmsg));
+    chassis->processFeedback(std::move(rmsg));
+
+    BOOST_CHECK_EQUAL(200, leftWheel->state()->getPwm());
+    BOOST_CHECK_EQUAL(2800, leftWheel->state()->getMilliamps());
+    BOOST_CHECK_EQUAL(-200, rightWheel->state()->getPwm());
+    BOOST_CHECK_EQUAL(500, rightWheel->state()->getMilliamps());
+}
+
+BOOST_AUTO_TEST_CASE(test_dispatch_feedback_in_full_model)
+{
+    using Wheel = model::Wheel<MockSerialPort>;
+    constexpr int wheelCount {2};
+    auto lserial = std::make_shared<MockSerialPort>();
+    auto rserial = std::make_shared<MockSerialPort>();
+    auto leftWheel = std::make_shared<Wheel>(0, lserial);
+    auto rightWheel = std::make_shared<Wheel>(1, rserial);
+    auto chassis = std::make_unique<model::Chassis<Wheel, wheelCount>>();
+    chassis->addWheel(leftWheel);
+    chassis->addWheel(rightWheel);
+
+    const std::string rjson{R"({"1":{"ROT":"20.0","CUR":"1260","TMP":"26.0","PWM":"-200","ERR":"0"}})"};
+    MappedDispatcher<std::string, JsonDispatcherProcessor<int, boost::property_tree::ptree>>
+            dispatcher;
+    dispatcher.addObserver(0, [leftWheel](int id, boost::property_tree::ptree tree)
+    {
+        leftWheel->setFeedback(WheelRecvMessage::fromTree(id, tree));
+    });
+    dispatcher.addObserver(1, [rightWheel](int id, boost::property_tree::ptree tree)
+    {
+        rightWheel->setFeedback(WheelRecvMessage::fromTree(id, tree));
+    });
+
+    dispatcher.dispatch(rjson);
+    dispatcher.notify();
+
+    BOOST_CHECK_EQUAL(0, leftWheel->state()->getPwm());
+    BOOST_CHECK_EQUAL(0, leftWheel->state()->getMilliamps());
+    BOOST_CHECK_EQUAL(-200, rightWheel->state()->getPwm());
+    BOOST_CHECK_EQUAL(1260, rightWheel->state()->getMilliamps());
+
+    const std::string ljson{R"({"0":{"ROT":"66.6","CUR":"1260","TMP":"26.0","PWM":"-66","ERR":"0"}})"};
+    dispatcher.dispatch(ljson);
+    dispatcher.notify();
+    BOOST_CHECK_EQUAL(-66, leftWheel->state()->getPwm());
+    BOOST_TEST(66.6 == leftWheel->state()->getAngularVelocity(),
+               boost::test_tools::tolerance(0.01));
+    BOOST_CHECK_EQUAL(-66, chassis->state(0)->getPwm());
+    BOOST_TEST(66.6 == chassis->state(0)->getAngularVelocity(),
+               boost::test_tools::tolerance(0.01));
+    BOOST_CHECK_EQUAL(-200, rightWheel->state()->getPwm());
+    BOOST_CHECK_EQUAL(1260, rightWheel->state()->getMilliamps());
 }
 
 BOOST_AUTO_TEST_CASE(test_pwm_visitor)

@@ -14,6 +14,20 @@ int model::Wheel<DataSink>::getId() const
 }
 
 template<typename DataSink>
+void model::Wheel<DataSink>::setFeedback(model::Wheel<DataSink>::feedback_type &&message)
+{
+    std::lock_guard<decltype(feedback_mtx)> _(feedback_mtx);
+    feedback = std::move(message);
+}
+
+template<typename DataSink>
+const typename model::Wheel<DataSink>::feedback_type *model::Wheel<DataSink>::state() const
+{
+    std::lock_guard<decltype(feedback_mtx)> _(feedback_mtx);
+    return &feedback;
+}
+
+template<typename DataSink>
 WheelSendMessage::Builder model::Wheel<DataSink>::generateMessage() const
 {
     return WheelSendMessage::Builder(id);

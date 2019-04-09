@@ -16,6 +16,7 @@ namespace rpc
 class GrpcChassisController : public GrpcChassisVisitor
 {
     const unsigned int wheelCount;
+//    std::weak_ptr<>
     std::weak_ptr<SequentialCommandExecutor> executor;
 public:
     /**
@@ -25,6 +26,13 @@ public:
      * @param executor An executor that is responsible for running generated commands.
      */
     GrpcChassisController(unsigned int wheelCount, std::weak_ptr<SequentialCommandExecutor> executor);
+
+//    template<typename Chassis>
+//    GrpcChassisController(Chassis &chassis, std::weak_ptr<SequentialCommandExecutor> executor)
+//    {
+
+//    }
+
     ~GrpcChassisController() override = default;
 
     void accept(const svc::PwmDriveCommand &cmd) override;
