@@ -1,5 +1,6 @@
 #include "chassisserviceimpl.h"
 #include "grpcchassisvisitor.h"
+#include <boost/log/trivial.hpp>
 
 
 namespace
@@ -58,11 +59,14 @@ grpc::Status ChassisServiceImpl::startPeripheralDevice(
         if (!rpiCam || !rpiCam->running())
         {
             rpiCam = std::make_unique<boost::process::child>(
-                        "/usr/bin/env", "sh", "gedit"); //"/opt/launch_rpicam_stream.sh");
+                        "gedit");
+//                        "/usr/bin/env", "sh", "/opt/launch_rpicam_stream.sh");
+            BOOST_LOG_TRIVIAL(info) << "Camera has been launched.";
         }
         else
         {
             rpiCam.reset();
+            BOOST_LOG_TRIVIAL(info) << "Camera has been killed.";
             response->set_device(PeripheralDeviceCommand::CAMERA_STREAM);
             response->set_status(PeripheralDeviceCommand::DISABLED);
         }

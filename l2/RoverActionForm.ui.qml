@@ -14,19 +14,10 @@ Page {
         spacing: 5
         anchors.fill: parent
 
-        Label {
-            anchors.horizontalCenter: parent.horizontalCenter
-            text: qsTr("You are on the home page.")
-        }
-
         Button {
             id: enableCameraButton
             anchors.horizontalCenter: parent.horizontalCenter
             text: qsTr("Enable camera")
-            Connections {
-                target: enableCameraButton
-                onClicked: appEngine.enableCamera()
-            }
         }
     }
 }

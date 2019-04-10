@@ -9,6 +9,8 @@
 #include <memory>
 #include <mutex>
 
+#include <QDebug>
+
 #include "service.grpc.pb.h"
 #include "service.pb.h"
 
@@ -49,6 +51,28 @@ public:
         boost::asio::post(th_pool, [this, callback]()
         {
            this->get_telemetry(callback);
+        });
+    }
+
+    void enableCamera(std::function<void(const rpc::svc::PeripheralDeviceCommand)> callback)
+    {
+        boost::asio::post(th_pool, [this, callback]()
+        {
+            using namespace rpc::svc;
+            PeripheralDeviceCommand response;
+            PeripheralDeviceCommand request;
+            request.set_device(PeripheralDeviceCommand::CAMERA_STREAM);
+            request.set_status(PeripheralDeviceCommand::ENABLED);
+            ClientContext ctx;
+            grpc::Status status;
+            {
+                std::lock_guard<std::mutex> _(mtx);
+                status = stub->startPeripheralDevice(&ctx, request, &response);
+            }
+            callback(response);
+
+            qInfo() << "EnableCamera request status:" << status.ok()
+                    << " - if error, reason:" << status.error_message().c_str();
         });
     }
 

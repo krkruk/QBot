@@ -59,7 +59,7 @@ ApplicationWindow {
 
     StackView {
         id: stackView
-        initialItem: "HomeForm.ui.qml"
+        initialItem: RoverAction{}
         anchors.fill: parent
     }
 }

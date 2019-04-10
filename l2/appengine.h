@@ -14,6 +14,8 @@ using grpc::Channel;
 class AppEngine : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(bool cameraEnabled READ cameraEnabled WRITE setCameraEnabled NOTIFY cameraEnabledChanged)
+
     static constexpr int GAMEPAD_TIMER_INTERVAL_MS = 50;
     static constexpr int TELEMETRY_TIMER_INTERVAL_MS = 1000;
     static constexpr int MIN_MULTIPLIER { -1 };
@@ -23,14 +25,24 @@ public:
     explicit AppEngine(std::shared_ptr<Channel> channel, QObject *parent = nullptr);
     ~AppEngine() override = default;
 
+    bool cameraEnabled() const
+    {
+        return m_cameraEnabled;
+    }
+
+
 signals:
-    void quit();
+    void cameraEnabledChanged(bool cameraEnabled);
+
+
+public slots:
+    void setCameraEnabled(bool cameraEnabled);
+    void enableCamera();
 
 
 private slots:
     void onGamepadTimeout();
     void onTelemetryTimeout();
-
     void onServerReplyStatusReceived(const grpc::Status &status);
 
 
@@ -46,6 +58,7 @@ private:
     int inputMultiplier { 255 };
     double leftAxis { 0.0 };
     double rightAxis { 0.0 };
+    bool m_cameraEnabled;
 };
 
 #endif // APPENGINE_H

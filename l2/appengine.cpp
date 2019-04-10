@@ -33,6 +33,26 @@ AppEngine::AppEngine(std::shared_ptr<grpc::Channel> channel, QObject *parent)
     gamepad = new QGamepad(connectedGamepads.first(), this);
 }
 
+void AppEngine::setCameraEnabled(bool cameraEnabled)
+{
+    if (m_cameraEnabled == cameraEnabled)
+    {
+        return;
+    }
+
+    m_cameraEnabled = cameraEnabled;
+    emit cameraEnabledChanged(m_cameraEnabled);
+}
+
+void AppEngine::enableCamera()
+{
+    grpc->enableCamera([this](const rpc::svc::PeripheralDeviceCommand &camera)
+    {
+        this->setCameraEnabled(
+                    camera.status() == rpc::svc::PeripheralDeviceCommand::ENABLED);
+    });
+}
+
 void AppEngine::onGamepadTimeout()
 {
     if (gamepad.isNull())
