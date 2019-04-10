@@ -1,5 +1,6 @@
 #ifndef CHASSISSERVICEIMPL_H
 #define CHASSISSERVICEIMPL_H
+#include <boost/process.hpp>
 #include <grpcpp/grpcpp.h>
 #include <functional>
 #include <utility>
@@ -15,6 +16,7 @@ class GrpcChassisVisitor;
 class ChassisServiceImpl : public rpc::svc::ChassisService::Service
 {
     std::weak_ptr<rpc::GrpcChassisVisitor> visitor;
+    std::unique_ptr<boost::process::child> rpiCam;
     std::function<void()> notify;
     std::function<void(rpc::svc::AllWheelFeedback *)> fillTelemetry;
 public:

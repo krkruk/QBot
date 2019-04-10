@@ -17,6 +17,7 @@ ChassisServiceImpl::ChassisServiceImpl(
         std::function<void(rpc::svc::AllWheelFeedback *)> fillTelemetry)
     : rpc::svc::ChassisService::Service{},
       visitor{visitor},
+      rpiCam{nullptr},
       notify{onResolvedAction},
       fillTelemetry{fillTelemetry}
 {
@@ -47,12 +48,34 @@ grpc::Status ChassisServiceImpl::startPeripheralDevice(
         const rpc::svc::PeripheralDeviceCommand *request,
         rpc::svc::PeripheralDeviceCommand *response)
 {
+    using namespace rpc::svc;
     unused(request);
     unused(context);
     unused(response);
+    switch (request->device())
+    {
+    case rpc::svc::PeripheralDeviceCommand_Device_CAMERA_STREAM:
+        if (!rpiCam || !rpiCam->running())
+        {
+            rpiCam = std::make_unique<boost::process::child>(
+                        "/usr/bin/env", "sh", "gedit"); //"/opt/launch_rpicam_stream.sh");
+        }
+        else
+        {
+            rpiCam.reset();
+            response->set_device(PeripheralDeviceCommand::CAMERA_STREAM);
+            response->set_status(PeripheralDeviceCommand::DISABLED);
+        }
+        break;
 
-    return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
-                        "Mismatched status code");
+    case rpc::svc::PeripheralDeviceCommand_Device_UNKNOWN:
+    case rpc::svc::PeripheralDeviceCommand_Device_FRONT_LED:
+    case rpc::svc::PeripheralDeviceCommand_Device_REVERSE_LED:
+    default:
+        return grpc::Status(grpc::StatusCode::UNIMPLEMENTED,
+                            "Mismatched status code");
+    }
+    return grpc::Status::OK;
 }
 
 grpc::Status ChassisServiceImpl::getWheelFeedback(
