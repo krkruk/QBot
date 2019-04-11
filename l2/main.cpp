@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
 
     AppEngine apk(grpc::CreateChannel(
-                      "localhost:5000",
+                      "192.168.11.7:5000",
                       grpc::InsecureChannelCredentials()));
 
     QQmlApplicationEngine engine;

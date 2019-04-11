@@ -59,9 +59,13 @@ grpc::Status ChassisServiceImpl::startPeripheralDevice(
         if (!rpiCam || !rpiCam->running())
         {
             rpiCam = std::make_unique<boost::process::child>(
-                        "gedit");
-//                        "/usr/bin/env", "sh", "/opt/launch_rpicam_stream.sh");
-            BOOST_LOG_TRIVIAL(info) << "Camera has been launched.";
+                        "/usr/bin/env", "sh", "/opt/launch_rpicam_stream.sh");
+            BOOST_LOG_TRIVIAL(info) << "Camera has been launched. Status: "
+                                    << rpiCam->running();
+            response->set_device(PeripheralDeviceCommand::CAMERA_STREAM);
+            response->set_status(rpiCam->running()
+                                 ? PeripheralDeviceCommand::ENABLED
+                                 : PeripheralDeviceCommand::DISABLED);
         }
         else
         {
