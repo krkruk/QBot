@@ -2,16 +2,26 @@
 #include <google/protobuf/util/json_util.h>
 #include <QGuiApplication>
 #include <QGamepadManager>
+#include <QStringList>
+#include <QProcess>
+#include <QTimer>
 #include <QDebug>
 #include <QList>
+#include <thread>
 #include <cmath>
 
 
-AppEngine::AppEngine(std::shared_ptr<grpc::Channel> channel, QObject *parent)
+AppEngine::AppEngine(const QString &address, int port, QObject *parent)
     : QObject(parent),
-      grpc{std::make_unique<GrpcClient>(std::move(channel))},
+      grpc{std::make_unique<GrpcClient>(
+               grpc::CreateChannel(QString("%1:%2")
+                                   .arg(address)
+                                   .arg(port).toStdString(),
+                      grpc::InsecureChannelCredentials()))},
       gamepadTimer(std::make_unique<QTimer>()),
-      telemetryTimer(std::make_unique<QTimer>())
+      telemetryTimer(std::make_unique<QTimer>()),
+      address{address},
+      port{port}
 {
     gamepadTimer->setInterval(GAMEPAD_TIMER_INTERVAL_MS);
     connect(gamepadTimer.get(), &QTimer::timeout,
@@ -50,6 +60,15 @@ void AppEngine::enableCamera()
     {
         this->setCameraEnabled(
                     camera.status() == rpc::svc::PeripheralDeviceCommand::ENABLED);
+
+        if (cameraEnabled())
+        {
+                std::this_thread::sleep_for(std::chrono::seconds{5});
+                QProcess::startDetached(
+                            "/bin/sh", QStringList() << "-c" <<
+                            QString("nc %1 %2 | mplayer -fps 300 -demuxer h264es -")
+                            .arg(address).arg(CAMERA_PORT));
+        }
     });
 }
 

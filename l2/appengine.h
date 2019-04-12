@@ -21,8 +21,10 @@ class AppEngine : public QObject
     static constexpr int MIN_MULTIPLIER { -1 };
     static constexpr int REVERT_AXIS { true ? -1 : 1 };
     static constexpr double DEAD_ZONE_PERCENT { 0.10 };
+
+    static constexpr int CAMERA_PORT {6000};
 public:
-    explicit AppEngine(std::shared_ptr<Channel> channel, QObject *parent = nullptr);
+    explicit AppEngine(const QString &address, int port, QObject *parent = nullptr);
     ~AppEngine() override = default;
 
     bool cameraEnabled() const
@@ -54,6 +56,8 @@ private:
     std::unique_ptr<QTimer> gamepadTimer;
     std::unique_ptr<QTimer> telemetryTimer;
     QPointer<QGamepad> gamepad;
+    QString address;
+    int port {5000};
 
     int inputMultiplier { 255 };
     double leftAxis { 0.0 };

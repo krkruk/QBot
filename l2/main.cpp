@@ -12,9 +12,7 @@ int main(int argc, char *argv[])
 
     QGuiApplication app(argc, argv);
 
-    AppEngine apk(grpc::CreateChannel(
-                      "192.168.11.7:5000",
-                      grpc::InsecureChannelCredentials()));
+    AppEngine apk("192.168.12.1", 5000);
 
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("appEngine", &apk);
