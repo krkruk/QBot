@@ -44,7 +44,7 @@ public:
      * @param pretty true to enable indents
      * @return a serialized message
      */
-    std::string toString(bool pretty = false) const;
+    std::string toString(bool pretty = false);
 
     /**
      * @brief operator bool Data can be always sent to sink.

@@ -2,10 +2,10 @@
 #define GRPCSERVER_H
 #include <memory>
 #include <thread>
-
+#include "chassismodel.h"
 
 class SequentialCommandExecutor;
-class ChassisModel;
+
 namespace rpc
 {
 class GrpcChassisVisitor;

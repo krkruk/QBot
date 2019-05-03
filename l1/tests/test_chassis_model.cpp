@@ -79,6 +79,30 @@ BOOST_AUTO_TEST_CASE(test_send_message_to_sink)
     BOOST_TEST(contains(msg, R"("2":{"PWM":"-200")"));
 }
 
+BOOST_AUTO_TEST_CASE(test_cleaning_the_jsonsink)
+{
+    using namespace model;
+    auto sink = std::make_shared<JsonSink>();
+    auto leftWheel = std::make_shared<Wheel<JsonSink>>(1, sink);
+    auto rightWheel = std::make_shared<Wheel<JsonSink>>(2, sink);
+    auto lmsg = leftWheel->generateMessage().setPwm(200).build();
+    auto rmsg = rightWheel->generateMessage().setPwm(-200).build();
+    leftWheel->sendMessage(lmsg);
+    rightWheel->sendMessage(rmsg);
+
+    auto msg = sink->toString();
+    lmsg = leftWheel->generateMessage().setPwm(16).build();
+    rmsg = rightWheel->generateMessage().setPwm(32).build();
+    leftWheel->sendMessage(lmsg);
+    rightWheel->sendMessage(rmsg);
+
+    msg = sink->toString();
+    BOOST_TEST(!contains(msg, R"("1":{"PWM":"200")"));
+    BOOST_TEST(!contains(msg, R"("2":{"PWM":"-200")"));
+    BOOST_TEST(contains(msg, R"("1":{"PWM":"16")"));
+    BOOST_TEST(contains(msg, R"("2":{"PWM":"32")"));
+}
+
 BOOST_AUTO_TEST_CASE(test_send_message_directly_to_serial)
 {
     using namespace model;

@@ -1,8 +1,9 @@
 #include "grpcserver.h"
 
 #include "sequentialcommandexecutor.h"
+#include "multipleucchassismodel.h"
+#include "singleucchassismodel.h"
 #include "chassisserviceimpl.h"
-#include "chassismodel.h"
 
 #include <boost/log/trivial.hpp>
 #include <grpc++/grpc++.h>
@@ -44,39 +45,84 @@ void GrpcServer::run()
         throw std::runtime_error("Cannot access chassis serial-side model.");
     }
 
-    ChassisServiceImpl service(
-    sh_model->getVisitor(),
-    [x=sh_model->getExecutor()]()
+    // I know... don't judge...
+    if (dynamic_cast<SingleUcChassisModel*>(sh_model.get()))
     {
-        if (auto sh_executor = x.lock())
+        BOOST_LOG_TRIVIAL(info) << "Instance of SingleUcChassisModel";
+        ChassisServiceImpl service(
+        sh_model->getVisitor(),
+        [x=sh_model->getExecutor()]()
         {
-            sh_executor->exec();
-        }
-    },
-    [wheels=sh_model->getWheels()](rpc::svc::AllWheelFeedback *response)
-    {
-        for (const auto &wheel : wheels)
-        {
-            if (wheel)
+            if (auto sh_executor = x.lock())
             {
-                auto *wheelResponse = response->add_wheels();
-                wheelResponse->set_id(wheel->getId());
-                wheelResponse->set_milliamps(wheel->state()->getMilliamps());
-                wheelResponse->set_pwm(wheel->state()->getPwm());
-                wheelResponse->set_error_code(wheel->state()->getErrorCode());
-                wheelResponse->set_angular_velocity(wheel->state()->getAngularVelocity());
-                wheelResponse->set_celsius(wheel->state()->getCelsius());
+                sh_executor->exec();
             }
-        }
-    });
+        },
+        [wheels=static_cast<SingleUcChassisModel*>(sh_model.get())->getWheels()]
+                (rpc::svc::AllWheelFeedback *response)
+        {
+            for (const auto &wheel : wheels)
+            {
+                if (wheel)
+                {
+                    auto *wheelResponse = response->add_wheels();
+                    wheelResponse->set_id(wheel->getId());
+                    wheelResponse->set_milliamps(wheel->state()->getMilliamps());
+                    wheelResponse->set_pwm(wheel->state()->getPwm());
+                    wheelResponse->set_error_code(wheel->state()->getErrorCode());
+                    wheelResponse->set_angular_velocity(wheel->state()->getAngularVelocity());
+                    wheelResponse->set_celsius(wheel->state()->getCelsius());
+                }
+            }
+        });
 
-    grpc::ServerBuilder builder;
-    builder.AddListeningPort(
-                "0.0.0.0:5000",
-                grpc::InsecureServerCredentials())
-            .RegisterService(&service);
-    server = std::unique_ptr<grpc::Server>(builder.BuildAndStart());
+        grpc::ServerBuilder builder;
+        builder.AddListeningPort(
+                    "0.0.0.0:5000",
+                    grpc::InsecureServerCredentials())
+                .RegisterService(&service);
+        server = std::unique_ptr<grpc::Server>(builder.BuildAndStart());
 
-    BOOST_LOG_TRIVIAL(info) << "The grpc server has been started.";
-    server->Wait();
+        BOOST_LOG_TRIVIAL(info) << "The grpc server has been started.";
+        server->Wait();
+    }
+    else
+    {
+        BOOST_LOG_TRIVIAL(info) << "Instance of MultipleUcChassisModel";
+        ChassisServiceImpl service(
+        sh_model->getVisitor(),
+        [x=sh_model->getExecutor()]()
+        {
+            if (auto sh_executor = x.lock())
+            {
+                sh_executor->exec();
+            }
+        },
+        [wheels=static_cast<MultipleUcChassisModel*>(sh_model.get())->getWheels()]
+                (rpc::svc::AllWheelFeedback *response)
+        {
+            for (const auto &wheel : wheels)
+            {
+                if (wheel)
+                {
+                    auto *wheelResponse = response->add_wheels();
+                    wheelResponse->set_id(wheel->getId());
+                    wheelResponse->set_milliamps(wheel->state()->getMilliamps());
+                    wheelResponse->set_pwm(wheel->state()->getPwm());
+                    wheelResponse->set_error_code(wheel->state()->getErrorCode());
+                    wheelResponse->set_angular_velocity(wheel->state()->getAngularVelocity());
+                    wheelResponse->set_celsius(wheel->state()->getCelsius());
+                }
+            }
+        });
+
+        grpc::ServerBuilder builder;
+        builder.AddListeningPort(
+                    "0.0.0.0:5000",
+                    grpc::InsecureServerCredentials())
+                .RegisterService(&service);
+        server = std::unique_ptr<grpc::Server>(builder.BuildAndStart());
+        BOOST_LOG_TRIVIAL(info) << "The grpc server has been started.";
+        server->Wait();
+    }
 }

@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
 
     QGuiApplication app(argc, argv);
 
-    AppEngine apk("192.168.12.1", 5000);
+    AppEngine apk("localhost", 5000);
 
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("appEngine", &apk);

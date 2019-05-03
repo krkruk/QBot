@@ -47,7 +47,10 @@ add_executable(${PROJECT_NAME}
     "grpcserver.h"
     "grpcserver.cpp"
     "chassismodel.h"
-    "chassismodel.cpp"
+    "singleucchassismodel.h"
+    "singleucchassismodel.cpp"
+    "multipleucchassismodel.h"
+    "multipleucchassismodel.cpp"
 )
 
 target_link_libraries(${PROJECT_NAME} level_one_impl)

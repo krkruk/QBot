@@ -7,7 +7,8 @@
 #include <vector>
 
 #include "serialdevicefinder.h"
-#include "chassismodel.h"
+#include "multipleucchassismodel.h"
+#include "singleucchassismodel.h"
 #include "grpcserver.h"
 
 auto detect_serials()
@@ -20,13 +21,16 @@ auto detect_serials()
                                 << " @ port=" << serial.second.getPortName();
     }
 
-    if (mapped_serials.size() < ChassisModel::wheelCount())
-    {
-        BOOST_LOG_TRIVIAL(error) << "Some serials have not been detected.";
-        throw std::runtime_error("Illegal number of serial devices");
-    }
-
     return mapped_serials;
+}
+
+constexpr bool single_uc()
+{
+#ifdef SINGLE_UC
+    return true;
+#else
+    return false;
+#endif
 }
 
 class App
@@ -43,7 +47,11 @@ public:
         : io_ctx{ctx},
           sig{io_ctx, SIGINT, SIGTERM},
           exit_code{0},
-          model{std::make_shared<ChassisModel>(io_ctx, detect_serials())},
+          model{single_uc()
+                ? std::shared_ptr<ChassisModel>(
+                      new SingleUcChassisModel(io_ctx, detect_serials()))
+                : std::shared_ptr<ChassisModel>(
+                      new MultipleUcChassisModel(io_ctx, detect_serials()))},
           grpc_server{std::make_unique<GrpcServer>(model)},
           check_health_timer{io_ctx, boost::asio::chrono::seconds{HEALTH_CHECK_TIMEOUT}}
     {
