@@ -56,9 +56,10 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME} level_one_impl)
 target_link_libraries(${PROJECT_NAME} protobuf_svc)
 
-find_package(Boost 1.67 REQUIRED filesystem system regex thread log)
+find_package(Boost 1.65 REQUIRED filesystem system regex thread log)
 target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 add_definitions(-DBOOST_LOG_DYN_LINK)
+include_directories( ${Boost_INCLUDE_DIR} )
 
 find_package(Protobuf REQUIRED)
 target_link_libraries(level_one ${Protobuf_LIBRARIES})

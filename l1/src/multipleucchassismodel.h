@@ -39,11 +39,11 @@ public:
 
     /**
      * @brief ChassisModel Constructor of the Chassis model
-     * @param io_ctx boost io_context
+     * @param io_ctx boost io_service
      * @param port_mapping a map of (ID, PortInfo) pairs.
      */
     explicit MultipleUcChassisModel(
-            boost::asio::io_context &io_ctx,
+            boost::asio::io_service &io_ctx,
             const std::unordered_map<std::string, serial::PortInfo> &port_mapping);
     ~MultipleUcChassisModel() override {}
 

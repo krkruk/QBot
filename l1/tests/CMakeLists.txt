@@ -13,7 +13,8 @@ add_executable(core_chassis_test
 
 
 add_compile_options(-Wno-disabled-macro-expansion)
-find_package(Boost 1.67 REQUIRED filesystem system regex thread log)
+find_package(Boost 1.65 REQUIRED filesystem system regex thread log)
+include_directories( ${Boost_INCLUDE_DIR} )
 add_definitions(-DBOOST_LOG_DYN_LINK)
 
 include_directories(

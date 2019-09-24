@@ -1,10 +1,11 @@
 #include <boost/asio/steady_timer.hpp>
-#include <boost/asio/io_context.hpp>
+#include <boost/asio/io_service.hpp>
 #include <boost/asio/signal_set.hpp>
-#include <boost/asio/post.hpp>
+#include <boost/asio/strand.hpp>
 #include <unordered_map>
 #include <iostream>
 #include <vector>
+#include <chrono>
 
 #include "serialdevicefinder.h"
 #include "multipleucchassismodel.h"
@@ -36,14 +37,14 @@ constexpr bool single_uc()
 class App
 {
     static constexpr int HEALTH_CHECK_TIMEOUT {5};
-    boost::asio::io_context &io_ctx;
+    boost::asio::io_service &io_ctx;
     boost::asio::signal_set sig;
     int exit_code;
     std::shared_ptr<ChassisModel> model;
     std::unique_ptr<GrpcServer> grpc_server;
     boost::asio::steady_timer check_health_timer;
 public:
-    App(boost::asio::io_context &ctx)
+    App(boost::asio::io_service &ctx)
         : io_ctx{ctx},
           sig{io_ctx, SIGINT, SIGTERM},
           exit_code{0},
@@ -53,7 +54,7 @@ public:
                 : std::shared_ptr<ChassisModel>(
                       new MultipleUcChassisModel(io_ctx, detect_serials()))},
           grpc_server{std::make_unique<GrpcServer>(model)},
-          check_health_timer{io_ctx, boost::asio::chrono::seconds{HEALTH_CHECK_TIMEOUT}}
+          check_health_timer(io_ctx, std::chrono::seconds(HEALTH_CHECK_TIMEOUT))
     {
         sig.async_wait(std::bind(&App::handle_signal, this,
                                  std::placeholders::_1, std::placeholders::_2));
@@ -104,7 +105,7 @@ private:
 //            }
         }
         check_health_timer.expires_at(check_health_timer.expires_at()
-                                      + boost::asio::chrono::seconds(HEALTH_CHECK_TIMEOUT));
+                                      + std::chrono::seconds(HEALTH_CHECK_TIMEOUT));
 
         check_health_timer.async_wait(std::bind(&App::check_health,
                                                 this, std::placeholders::_1));
@@ -115,7 +116,7 @@ constexpr int App::HEALTH_CHECK_TIMEOUT;
 
 int main()
 {
-    boost::asio::io_context io_ctx;
+    boost::asio::io_service io_ctx;
     try
     {
         App app{io_ctx};

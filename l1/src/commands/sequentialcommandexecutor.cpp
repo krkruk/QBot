@@ -28,7 +28,7 @@ void SequentialCommandExecutor::exec()
 
     while (commands.size())
     {
-        // Consider running these commands in boost::asio::io_context by posting a task
+        // Consider running these commands in boost::asio::io_service by posting a task
         auto &cmd = commands.front();
         auto result = cmd->execute();
         callback(std::move(result));

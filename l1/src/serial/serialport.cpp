@@ -2,7 +2,7 @@
 #include "serialport.h"
 
 template<typename Algorithm>
-serial::SerialPort<Algorithm>::SerialPort(boost::asio::io_context &ctx,
+serial::SerialPort<Algorithm>::SerialPort(boost::asio::io_service &ctx,
                                                     const std::string &portName,
                                                     typename Algorithm::callback_type readCallback)
     : serial{std::make_unique<boost::asio::serial_port>(ctx, portName)},
@@ -19,7 +19,7 @@ serial::SerialPort<Algorithm>::SerialPort(boost::asio::io_context &ctx,
 }
 
 template<typename Algorithm>
-serial::SerialPort<Algorithm>::SerialPort(boost::asio::io_context &ctx,
+serial::SerialPort<Algorithm>::SerialPort(boost::asio::io_service &ctx,
                                                     const PortInfo &portName,
                                                     typename Algorithm::callback_type readCallback)
     : SerialPort{ctx, portName.getPortName(), readCallback}

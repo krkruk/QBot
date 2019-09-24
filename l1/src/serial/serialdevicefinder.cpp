@@ -1,6 +1,6 @@
 #include "serialdevicefinder.h"
 #include <boost/property_tree/json_parser.hpp>
-#include <boost/asio/io_context.hpp>
+#include <boost/asio/io_service.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/asio.hpp>
 #include <functional>
@@ -56,7 +56,7 @@ serial::SerialDeviceFinder::result_type
 serial::SerialDeviceFinder::retrieve_id(const serial::PortInfo &port)
 {
     using namespace boost::asio;
-    io_context ctx;
+    io_service ctx;
 
     // To be moved into a properties file
     boost::asio::serial_port serial{ctx, port.getPortName()};

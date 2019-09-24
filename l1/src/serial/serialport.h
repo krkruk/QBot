@@ -2,7 +2,7 @@
 #define SERIALPORT_H
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/serial_port.hpp>
-#include <boost/asio/io_context.hpp>
+#include <boost/asio/io_service.hpp>
 #include <boost/log/trivial.hpp>
 #include <functional>
 #include <iostream>
@@ -107,25 +107,25 @@ class SerialPort
 public:
     /**
      * @brief SerialPort Constructor, automatically connects to a given serial
-     * @param ctx io_context
+     * @param ctx io_service
      * @param portName Name of the port to connect to
      * @param readCallback Callback that receives a package of data
      * do be processed with. Requires an Algorithm to be processed in a correct
      * way. The callback must correspond to the required callback by the Algorithm
      */
-    explicit SerialPort(boost::asio::io_context &ctx,
+    explicit SerialPort(boost::asio::io_service &ctx,
                         const std::string &portName,
                         typename Algorithm::callback_type readCallback);
 
     /**
      * @brief SerialPort Constructor, automatically connects to a given serial
-     * @param ctx io_context
+     * @param ctx io_service
      * @param portName Name of the port to connect to
      * @param readCallback Callback that receives a package of data
      * do be processed with. Requires an Algorithm to be processed in a correct
      * way. The callback must correspond to the required callback by the Algorithm
      */
-    explicit SerialPort(boost::asio::io_context &ctx,
+    explicit SerialPort(boost::asio::io_service &ctx,
                         const PortInfo &portName,
                         typename Algorithm::callback_type readCallback);
 

@@ -1,6 +1,6 @@
 #include "singleucchassismodel.h"
 
-#include <boost/asio/io_context.hpp>
+#include <boost/asio/io_service.hpp>
 #include <algorithm>
 #include "grpcchassiscontroller.h"
 
@@ -8,7 +8,7 @@ constexpr unsigned SingleUcChassisModel::WHEEL_COUNT;
 
 
 SingleUcChassisModel::SingleUcChassisModel(
-        boost::asio::io_context &io_ctx,
+        boost::asio::io_service &io_ctx,
         const std::unordered_map<std::string, serial::PortInfo> &port_mapping)
     : chassis{std::make_unique<model::Chassis<Wheel, WHEEL_COUNT>>()},
       executor{std::make_shared<SequentialCommandExecutor>()},
